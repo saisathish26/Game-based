@@ -1,0 +1,1778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberQuest: The Data Security Mission</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050a14;
+  --panel: #0a1628;
+  --panel2: #0d1f3c;
+  --border: #1a3a6a;
+  --border2: #2a5aaa;
+  --cyan: #00f5ff;
+  --cyan2: #00c8d4;
+  --green: #00ff88;
+  --green2: #00cc6a;
+  --red: #ff3355;
+  --red2: #cc2244;
+  --yellow: #ffd700;
+  --yellow2: #ccaa00;
+  --purple: #b84fff;
+  --purple2: #8833cc;
+  --orange: #ff7700;
+  --text: #c8e0ff;
+  --muted: #4a6a9a;
+  --white: #e8f4ff;
+  --pixel: 'Press Start 2P', monospace;
+  --tech: 'Orbitron', sans-serif;
+  --mono: 'Share Tech Mono', monospace;
+  --glow-cyan: 0 0 10px rgba(0,245,255,0.6), 0 0 30px rgba(0,245,255,0.2);
+  --glow-green: 0 0 10px rgba(0,255,136,0.6), 0 0 30px rgba(0,255,136,0.2);
+  --glow-red: 0 0 10px rgba(255,51,85,0.6), 0 0 30px rgba(255,51,85,0.2);
+  --glow-yellow: 0 0 10px rgba(255,215,0,0.6), 0 0 30px rgba(255,215,0,0.2);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+
+body {
+  font-family: var(--mono);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ── SCANLINES OVERLAY ── */
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+  pointer-events:none;
+  z-index:9998;
+}
+body::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,5,15,0.7) 100%);
+  pointer-events:none;
+  z-index:9997;
+}
+
+/* ── STARS BG ── */
+.stars {
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+}
+.star {
+  position:absolute;
+  border-radius:50%;
+  background:#fff;
+  animation: twinkle var(--d,3s) infinite ease-in-out var(--del,0s);
+}
+@keyframes twinkle{0%,100%{opacity:0.1}50%{opacity:0.8}}
+
+/* ── HUD / HEADER ── */
+.hud {
+  position:relative;
+  z-index:100;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0.6rem 1.5rem;
+  background: linear-gradient(135deg, var(--panel) 0%, var(--panel2) 100%);
+  border-bottom: 1px solid var(--border2);
+  flex-shrink:0;
+  gap:1rem;
+}
+.hud::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0.5;}
+
+.hud-logo {
+  font-family: var(--tech);
+  font-weight: 900;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  color: var(--cyan);
+  text-shadow: var(--glow-cyan);
+  white-space: nowrap;
+}
+.hud-logo span { color: var(--yellow); text-shadow: var(--glow-yellow); }
+
+.hud-center { display:flex; align-items:center; gap:1.5rem; flex:1; justify-content:center; }
+
+.stat-block { display:flex; flex-direction:column; align-items:center; gap:0.2rem; }
+.stat-label { font-size:0.5rem; letter-spacing:0.15em; color:var(--muted); font-family:var(--pixel); }
+.stat-val { font-family:var(--tech); font-weight:700; font-size:0.9rem; }
+.stat-val.cyan { color:var(--cyan); text-shadow:var(--glow-cyan); }
+.stat-val.yellow { color:var(--yellow); text-shadow:var(--glow-yellow); }
+.stat-val.green { color:var(--green); text-shadow:var(--glow-green); }
+
+.hp-bar-wrap { display:flex; flex-direction:column; align-items:center; gap:0.2rem; }
+.hp-track { width:140px; height:12px; background:rgba(255,51,85,0.15); border:1px solid var(--red2); border-radius:2px; overflow:hidden; }
+.hp-fill { height:100%; background: linear-gradient(90deg, var(--red), #ff6688); transition:width 0.5s; border-radius:1px; position:relative; }
+.hp-fill::after { content:''; position:absolute; inset:0; background:repeating-linear-gradient(90deg,transparent,transparent 8px,rgba(255,255,255,0.1) 8px,rgba(255,255,255,0.1) 9px); }
+
+.lives-display { display:flex; gap:0.3rem; align-items:center; }
+.life-heart { font-size:0.9rem; filter: drop-shadow(0 0 4px rgba(255,51,85,0.8)); transition:all 0.3s; }
+.life-heart.lost { filter:grayscale(1) opacity(0.3); }
+
+.hud-right { display:flex; align-items:center; gap:1rem; }
+.level-badge {
+  font-family:var(--pixel);
+  font-size:0.45rem;
+  padding:0.4rem 0.8rem;
+  background: linear-gradient(135deg, rgba(0,245,255,0.1), rgba(0,200,212,0.05));
+  border:1px solid var(--cyan);
+  color:var(--cyan);
+  text-shadow:var(--glow-cyan);
+  letter-spacing:0.08em;
+}
+
+/* ── PROGRESS BAR ── */
+.progress-strip {
+  height:3px;
+  background:var(--panel);
+  position:relative;
+  z-index:99;
+  flex-shrink:0;
+}
+.progress-glow {
+  height:100%;
+  background: linear-gradient(90deg, var(--cyan), var(--green), var(--yellow));
+  transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  position:relative;
+}
+.progress-glow::after {
+  content:'';
+  position:absolute;
+  right:0; top:50%;
+  transform:translateY(-50%);
+  width:12px; height:12px;
+  border-radius:50%;
+  background:var(--yellow);
+  box-shadow:var(--glow-yellow);
+}
+
+/* ── MAIN CONTENT ── */
+.game-container { flex:1; overflow:hidden; position:relative; z-index:1; }
+
+/* ── SCREENS ── */
+.screen {
+  position:absolute;
+  inset:0;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:1.5rem;
+  overflow-y:auto;
+}
+.screen.active { display:flex; }
+
+/* ── WORLD MAP ── */
+#screen-map {
+  background: radial-gradient(ellipse at 30% 40%, rgba(0,80,160,0.2) 0%, transparent 60%), var(--bg);
+}
+.map-title {
+  font-family:var(--pixel);
+  font-size:0.6rem;
+  color:var(--cyan);
+  text-shadow:var(--glow-cyan);
+  letter-spacing:0.15em;
+  margin-bottom:0.5rem;
+  text-align:center;
+}
+.map-subtitle { font-size:0.75rem; color:var(--muted); margin-bottom:2rem; text-align:center; letter-spacing:0.08em; }
+
+.world-map {
+  display:grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap:0.8rem;
+  width:100%;
+  max-width:900px;
+}
+.map-node {
+  background: linear-gradient(135deg, var(--panel2), var(--panel));
+  border:2px solid var(--border);
+  border-radius:8px;
+  padding:1.2rem 0.8rem;
+  text-align:center;
+  cursor:pointer;
+  transition:all 0.25s;
+  position:relative;
+  overflow:hidden;
+}
+.map-node::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.02));
+}
+.map-node.unlocked { border-color:var(--cyan2); }
+.map-node.unlocked:hover { border-color:var(--cyan); transform:translateY(-4px) scale(1.02); box-shadow:0 8px 24px rgba(0,245,255,0.15), var(--glow-cyan); }
+.map-node.completed { border-color:var(--green2); background:linear-gradient(135deg, rgba(0,255,136,0.08), var(--panel)); }
+.map-node.locked { opacity:0.35; cursor:not-allowed; filter:grayscale(0.5); }
+.map-node.boss-node { border-color:var(--red); animation: boss-pulse 2s infinite; }
+@keyframes boss-pulse {
+  0%,100%{box-shadow:0 0 10px rgba(255,51,85,0.3);}
+  50%{box-shadow:0 0 25px rgba(255,51,85,0.7), 0 0 50px rgba(255,51,85,0.2);}
+}
+.node-icon { font-size:2rem; margin-bottom:0.5rem; display:block; }
+.node-name { font-family:var(--pixel); font-size:0.38rem; letter-spacing:0.06em; color:var(--text); margin-bottom:0.3rem; line-height:1.6; }
+.node-type { font-size:0.6rem; color:var(--muted); }
+.node-stars { display:flex; justify-content:center; gap:2px; margin-top:0.4rem; }
+.node-star { font-size:0.7rem; }
+.node-badge {
+  position:absolute;
+  top:0.4rem; right:0.4rem;
+  font-size:0.55rem;
+  padding:0.15rem 0.4rem;
+  border-radius:3px;
+  font-family:var(--pixel);
+  font-size:0.3rem;
+  letter-spacing:0.06em;
+}
+.badge-new { background:var(--green); color:#000; }
+.badge-done { background:var(--green2); color:#fff; }
+.badge-locked { background:var(--muted); color:#000; }
+.badge-boss { background:var(--red); color:#fff; animation:badge-flash 1s infinite; }
+@keyframes badge-flash{0%,100%{opacity:1}50%{opacity:0.5}}
+
+.map-path {
+  position:absolute;
+  border-top:2px dashed var(--border2);
+  opacity:0.4;
+}
+
+/* ── DIALOGUE / CUTSCENE ── */
+#screen-dialogue {
+  background: var(--bg);
+  padding:2rem;
+}
+.dialogue-scene {
+  width:100%;
+  max-width:780px;
+  display:flex;
+  flex-direction:column;
+  gap:1.5rem;
+}
+.scene-visual {
+  background: linear-gradient(180deg, rgba(0,20,50,0.8) 0%, var(--panel) 100%);
+  border:1px solid var(--border2);
+  border-radius:8px;
+  height:220px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+}
+.scene-visual::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  background: repeating-linear-gradient(0deg,transparent,transparent 30px,rgba(0,245,255,0.02) 30px,rgba(0,245,255,0.02) 31px),
+              repeating-linear-gradient(90deg,transparent,transparent 30px,rgba(0,245,255,0.02) 30px,rgba(0,245,255,0.02) 31px);
+}
+.scene-characters { display:flex; align-items:flex-end; gap:3rem; padding:1rem; position:relative; z-index:1; }
+.character {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:0.3rem;
+  transition:all 0.3s;
+}
+.character.speaking { transform:translateY(-8px); }
+.char-sprite { font-size:3.5rem; filter:drop-shadow(0 0 12px rgba(0,245,255,0.5)); }
+.char-sprite.villain { filter:drop-shadow(0 0 12px rgba(255,51,85,0.7)); }
+.char-name { font-family:var(--pixel); font-size:0.35rem; color:var(--cyan); letter-spacing:0.08em; }
+.char-name.villain { color:var(--red); }
+
+.dialogue-box {
+  background: var(--panel);
+  border:2px solid var(--border2);
+  border-radius:8px;
+  padding:1.2rem 1.5rem;
+  position:relative;
+}
+.dialogue-box::before {
+  content:'';
+  position:absolute;
+  top:-1px; left:0; right:0;
+  height:2px;
+  background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+}
+.dialogue-speaker {
+  font-family:var(--pixel);
+  font-size:0.45rem;
+  color:var(--yellow);
+  letter-spacing:0.1em;
+  margin-bottom:0.6rem;
+  text-shadow:var(--glow-yellow);
+}
+.dialogue-text {
+  font-size:0.88rem;
+  line-height:1.7;
+  color:var(--white);
+  min-height:50px;
+}
+.dialogue-text .highlight { color:var(--cyan); font-weight:bold; }
+.dialogue-text .danger { color:var(--red); font-weight:bold; }
+.dialogue-text .success { color:var(--green); font-weight:bold; }
+
+.dialogue-actions { display:flex; gap:0.8rem; justify-content:flex-end; margin-top:1rem; flex-wrap:wrap; }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family:var(--pixel);
+  font-size:0.45rem;
+  letter-spacing:0.08em;
+  padding:0.7rem 1.4rem;
+  border:2px solid;
+  cursor:pointer;
+  transition:all 0.18s;
+  text-transform:uppercase;
+  position:relative;
+  overflow:hidden;
+}
+.btn::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  background:rgba(255,255,255,0.05);
+  transform:translateX(-100%);
+  transition:transform 0.2s;
+}
+.btn:hover::after { transform:translateX(0); }
+.btn-cyan { border-color:var(--cyan); color:var(--cyan); background:rgba(0,245,255,0.05); }
+.btn-cyan:hover { background:var(--cyan); color:#000; box-shadow:var(--glow-cyan); }
+.btn-green { border-color:var(--green); color:var(--green); background:rgba(0,255,136,0.05); }
+.btn-green:hover { background:var(--green); color:#000; box-shadow:var(--glow-green); }
+.btn-red { border-color:var(--red); color:var(--red); background:rgba(255,51,85,0.05); }
+.btn-red:hover { background:var(--red); color:#fff; box-shadow:var(--glow-red); }
+.btn-yellow { border-color:var(--yellow); color:var(--yellow); background:rgba(255,215,0,0.05); }
+.btn-yellow:hover { background:var(--yellow); color:#000; box-shadow:var(--glow-yellow); }
+.btn-purple { border-color:var(--purple); color:var(--purple); background:rgba(184,79,255,0.05); }
+.btn-purple:hover { background:var(--purple); color:#fff; }
+.btn:disabled { opacity:0.3; cursor:not-allowed; }
+.btn:disabled:hover::after { transform:translateX(-100%); }
+
+/* ── QUIZ SCREEN ── */
+#screen-quiz { padding:1.5rem 2rem; }
+.quiz-wrap { width:100%; max-width:820px; }
+.quiz-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem; }
+.quiz-level-title { font-family:var(--tech); font-weight:700; font-size:1.1rem; color:var(--cyan); text-shadow:var(--glow-cyan); }
+.quiz-progress-info { font-family:var(--pixel); font-size:0.4rem; color:var(--muted); letter-spacing:0.08em; }
+.timer-bar-wrap { margin-bottom:1.2rem; }
+.timer-label { font-family:var(--pixel); font-size:0.4rem; color:var(--muted); letter-spacing:0.1em; margin-bottom:0.3rem; display:flex; justify-content:space-between; }
+.timer-track { height:8px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; border:1px solid var(--border); }
+.timer-fill { height:100%; background:linear-gradient(90deg, var(--green), var(--yellow), var(--red)); border-radius:1px; transition:width 1s linear; }
+
+.scenario-panel {
+  background:var(--panel);
+  border:1px solid var(--border2);
+  border-radius:8px;
+  padding:1.2rem 1.5rem;
+  margin-bottom:1rem;
+  position:relative;
+  overflow:hidden;
+}
+.scenario-panel::before {
+  content:'';
+  position:absolute;
+  left:0; top:0; bottom:0;
+  width:3px;
+  background:var(--cyan);
+  box-shadow:var(--glow-cyan);
+}
+.scenario-type { font-family:var(--pixel); font-size:0.38rem; color:var(--yellow); letter-spacing:0.12em; margin-bottom:0.6rem; display:flex; align-items:center; gap:0.5rem; }
+.scenario-type::before { content:'▶'; font-size:0.5rem; }
+.scenario-q { font-size:0.95rem; line-height:1.7; color:var(--white); }
+.scenario-q .code { font-family:var(--mono); background:rgba(0,245,255,0.08); padding:0.15rem 0.5rem; border:1px solid var(--border2); border-radius:3px; color:var(--cyan); }
+.scenario-q .warn { color:var(--red); }
+
+.answer-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.7rem; margin-bottom:1rem; }
+.answer-btn {
+  background:var(--panel2);
+  border:1.5px solid var(--border);
+  border-radius:6px;
+  padding:0.9rem 1rem;
+  cursor:pointer;
+  text-align:left;
+  font-family:var(--mono);
+  font-size:0.82rem;
+  color:var(--text);
+  transition:all 0.18s;
+  display:flex;
+  align-items:flex-start;
+  gap:0.7rem;
+  line-height:1.5;
+}
+.answer-btn:hover:not(.locked) { border-color:var(--cyan); color:var(--cyan); background:rgba(0,245,255,0.06); }
+.answer-btn.correct { border-color:var(--green); background:rgba(0,255,136,0.1); color:var(--green); }
+.answer-btn.wrong { border-color:var(--red); background:rgba(255,51,85,0.1); color:var(--red); }
+.answer-btn.locked { cursor:default; }
+.ans-key {
+  font-family:var(--pixel);
+  font-size:0.4rem;
+  width:24px; height:24px;
+  border-radius:3px;
+  background:var(--border);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+  letter-spacing:0;
+  margin-top:0.1rem;
+}
+.answer-btn.correct .ans-key { background:var(--green); color:#000; }
+.answer-btn.wrong .ans-key { background:var(--red); color:#fff; }
+
+.feedback-panel {
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:0.9rem 1.2rem;
+  display:none;
+  font-size:0.82rem;
+  line-height:1.6;
+  animation:slideIn 0.3s ease;
+}
+.feedback-panel.show { display:block; }
+.feedback-panel.good { border-color:var(--green); color:var(--green); }
+.feedback-panel.bad { border-color:var(--red); color:#ff9aaa; }
+@keyframes slideIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.xp-popup {
+  position:fixed;
+  font-family:var(--tech);
+  font-weight:900;
+  font-size:1.5rem;
+  color:var(--yellow);
+  text-shadow:var(--glow-yellow);
+  pointer-events:none;
+  animation:xpFloat 1.5s ease forwards;
+  z-index:9999;
+}
+@keyframes xpFloat { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-80px) scale(1.3)} }
+
+/* ── PUZZLE SCREEN ── */
+#screen-puzzle { padding:1.5rem; }
+.puzzle-wrap { width:100%; max-width:820px; }
+.puzzle-title { font-family:var(--pixel); font-size:0.55rem; color:var(--yellow); text-shadow:var(--glow-yellow); letter-spacing:0.1em; margin-bottom:0.3rem; }
+.puzzle-desc { font-size:0.82rem; color:var(--muted); margin-bottom:1.2rem; line-height:1.6; }
+
+/* Password strength puzzle */
+.password-game { display:flex; flex-direction:column; gap:1rem; }
+.pw-input-wrap {
+  background:var(--panel);
+  border:2px solid var(--border2);
+  border-radius:6px;
+  padding:0.6rem 1rem;
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+}
+.pw-input-wrap::before { content:'$'; color:var(--green); font-family:var(--mono); }
+.pw-input {
+  flex:1;
+  background:transparent;
+  border:none;
+  outline:none;
+  color:var(--cyan);
+  font-family:var(--mono);
+  font-size:1rem;
+  letter-spacing:0.08em;
+}
+.pw-input::placeholder { color:var(--muted); font-size:0.8rem; }
+.strength-meter { display:flex; gap:4px; align-items:center; }
+.strength-block {
+  width:30px; height:10px;
+  border-radius:2px;
+  background:var(--border);
+  transition:all 0.3s;
+}
+.strength-label { font-family:var(--pixel); font-size:0.35rem; color:var(--muted); letter-spacing:0.08em; margin-left:0.5rem; }
+.pw-rules { display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; }
+.pw-rule {
+  display:flex; align-items:center; gap:0.6rem;
+  font-size:0.78rem; color:var(--muted);
+  padding:0.4rem 0.6rem;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:4px;
+  transition:all 0.2s;
+}
+.pw-rule.pass { color:var(--green); border-color:var(--green2); background:rgba(0,255,136,0.05); }
+.pw-rule.fail { color:var(--red); border-color:var(--red2); }
+.pw-rule-icon { font-size:0.9rem; flex-shrink:0; }
+
+/* Email sort puzzle */
+.email-sort { display:flex; gap:1.2rem; }
+.email-pool { flex:1; }
+.email-drop-zones { display:flex; gap:0.8rem; flex:1.5; }
+.drop-zone {
+  flex:1;
+  background:var(--panel);
+  border:2px dashed var(--border);
+  border-radius:8px;
+  padding:0.8rem;
+  min-height:200px;
+  transition:border-color 0.2s;
+}
+.drop-zone.drag-over { border-color:var(--cyan); background:rgba(0,245,255,0.04); }
+.drop-zone-title { font-family:var(--pixel); font-size:0.35rem; letter-spacing:0.08em; margin-bottom:0.6rem; text-align:center; }
+.dz-legit .drop-zone-title { color:var(--green); }
+.dz-phish .drop-zone-title { color:var(--red); }
+.email-card {
+  background:var(--panel2);
+  border:1px solid var(--border2);
+  border-radius:5px;
+  padding:0.6rem 0.8rem;
+  margin-bottom:0.5rem;
+  cursor:grab;
+  font-size:0.72rem;
+  line-height:1.5;
+  transition:all 0.18s;
+  user-select:none;
+}
+.email-card:hover { border-color:var(--cyan); transform:translateX(2px); }
+.email-card.dragging { opacity:0.4; }
+.email-card .from { color:var(--cyan); font-size:0.68rem; margin-bottom:0.2rem; }
+.email-card .subject { color:var(--white); font-weight:bold; margin-bottom:0.2rem; }
+.email-card .body { color:var(--muted); font-size:0.66rem; }
+.email-card.correct-place { border-color:var(--green); background:rgba(0,255,136,0.05); }
+.email-card.wrong-place { border-color:var(--red); background:rgba(255,51,85,0.05); }
+.pool-title { font-family:var(--pixel); font-size:0.35rem; color:var(--muted); letter-spacing:0.08em; margin-bottom:0.6rem; }
+
+/* ── BOSS BATTLE ── */
+#screen-boss { background: radial-gradient(ellipse at center, rgba(50,0,0,0.4) 0%, var(--bg) 70%); }
+.boss-arena { width:100%; max-width:820px; display:flex; flex-direction:column; gap:1rem; }
+.boss-header { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; }
+.boss-vs { font-family:var(--tech); font-weight:900; font-size:1.4rem; color:var(--red); text-shadow:var(--glow-red); align-self:center; }
+.boss-hp-block { flex:1; }
+.boss-hp-label { font-family:var(--pixel); font-size:0.4rem; color:var(--red); letter-spacing:0.1em; margin-bottom:0.3rem; }
+.boss-hp-track { height:16px; background:rgba(255,0,0,0.1); border:1px solid var(--red2); border-radius:3px; overflow:hidden; }
+.boss-hp-fill { height:100%; background:linear-gradient(90deg, var(--red2), var(--red)); transition:width 0.6s; position:relative; }
+.boss-hp-fill::after { content:''; position:absolute; inset:0; background:repeating-linear-gradient(90deg,transparent,transparent 12px,rgba(255,255,255,0.1) 12px,rgba(255,255,255,0.1) 13px); }
+
+.boss-scene {
+  background:linear-gradient(180deg, rgba(30,0,0,0.5) 0%, var(--panel) 100%);
+  border:1px solid var(--red2);
+  border-radius:8px;
+  padding:1.5rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:3rem;
+  min-height:150px;
+  position:relative;
+  overflow:hidden;
+}
+.boss-scene::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(255,51,85,0.03) 40px,rgba(255,51,85,0.03) 41px); }
+.boss-sprite { font-size:5rem; filter:drop-shadow(0 0 20px rgba(255,51,85,0.8)); animation:bossFloat 2s ease-in-out infinite; }
+@keyframes bossFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.boss-attack-text {
+  font-family:var(--pixel);
+  font-size:0.5rem;
+  color:var(--red);
+  text-shadow:var(--glow-red);
+  letter-spacing:0.08em;
+  line-height:1.8;
+  max-width:340px;
+}
+.boss-attack-text .attack-name { font-size:0.6rem; color:var(--yellow); margin-bottom:0.4rem; display:block; text-shadow:var(--glow-yellow); }
+
+.boss-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:0.7rem; }
+.boss-move {
+  background:var(--panel);
+  border:1.5px solid var(--border2);
+  border-radius:6px;
+  padding:1rem;
+  cursor:pointer;
+  transition:all 0.2s;
+  text-align:left;
+}
+.boss-move:hover { border-color:var(--cyan); background:rgba(0,245,255,0.05); }
+.boss-move.used { opacity:0.3; cursor:default; pointer-events:none; }
+.move-name { font-family:var(--pixel); font-size:0.4rem; color:var(--cyan); letter-spacing:0.08em; margin-bottom:0.3rem; }
+.move-desc { font-size:0.75rem; color:var(--muted); line-height:1.5; }
+.move-power { font-family:var(--tech); font-size:0.75rem; color:var(--yellow); margin-top:0.3rem; }
+
+.boss-log {
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:0.8rem 1rem;
+  font-family:var(--mono);
+  font-size:0.72rem;
+  color:var(--muted);
+  max-height:80px;
+  overflow-y:auto;
+  line-height:1.8;
+}
+.boss-log .log-good { color:var(--green); }
+.boss-log .log-bad { color:var(--red); }
+.boss-log .log-info { color:var(--cyan); }
+
+/* ── INVENTORY / POWER-UPS ── */
+.inventory-bar {
+  display:flex;
+  gap:0.5rem;
+  align-items:center;
+  padding:0.4rem 0;
+}
+.inv-label { font-family:var(--pixel); font-size:0.35rem; color:var(--muted); letter-spacing:0.1em; margin-right:0.3rem; }
+.inv-slot {
+  width:44px; height:44px;
+  background:var(--panel2);
+  border:1.5px solid var(--border);
+  border-radius:6px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.4rem;
+  cursor:pointer;
+  transition:all 0.18s;
+  position:relative;
+}
+.inv-slot:hover:not(.empty) { border-color:var(--yellow); box-shadow:var(--glow-yellow); }
+.inv-slot.empty { opacity:0.2; cursor:default; }
+.inv-count {
+  position:absolute;
+  bottom:0; right:0;
+  background:var(--yellow);
+  color:#000;
+  font-family:var(--pixel);
+  font-size:0.3rem;
+  padding:0.05rem 0.25rem;
+  border-radius:0 0 4px 0;
+}
+.inv-tooltip {
+  position:absolute;
+  bottom:calc(100% + 6px);
+  left:50%;
+  transform:translateX(-50%);
+  background:var(--panel);
+  border:1px solid var(--yellow);
+  border-radius:5px;
+  padding:0.4rem 0.6rem;
+  font-size:0.65rem;
+  white-space:nowrap;
+  color:var(--yellow);
+  font-family:var(--pixel);
+  font-size:0.32rem;
+  letter-spacing:0.06em;
+  display:none;
+  z-index:200;
+}
+.inv-slot:hover .inv-tooltip { display:block; }
+
+/* ── LEVEL COMPLETE ── */
+#screen-level-complete { text-align:center; }
+.level-complete-box {
+  background: linear-gradient(135deg, var(--panel2), var(--panel));
+  border:2px solid var(--cyan);
+  border-radius:12px;
+  padding:2.5rem;
+  max-width:520px;
+  width:100%;
+  position:relative;
+  overflow:hidden;
+}
+.level-complete-box::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at center, rgba(0,245,255,0.06) 0%, transparent 70%);
+}
+.lc-icon { font-size:4rem; margin-bottom:0.8rem; animation:popIn 0.5s cubic-bezier(.4,0,0,1.4); }
+@keyframes popIn{from{transform:scale(0) rotate(-10deg)}to{transform:scale(1) rotate(0)}}
+.lc-title { font-family:var(--pixel); font-size:0.7rem; color:var(--yellow); text-shadow:var(--glow-yellow); letter-spacing:0.1em; margin-bottom:0.4rem; }
+.lc-level { font-family:var(--tech); font-size:1.2rem; color:var(--cyan); text-shadow:var(--glow-cyan); margin-bottom:1.2rem; }
+.lc-stars { font-size:2rem; margin-bottom:1rem; display:flex; gap:0.3rem; justify-content:center; }
+.lc-star { opacity:0; transform:scale(0); transition:all 0.3s; }
+.lc-star.lit { opacity:1; transform:scale(1); filter:drop-shadow(0 0 6px var(--yellow)); }
+.lc-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:0.8rem; margin:1.2rem 0; }
+.lc-stat { background:rgba(255,255,255,0.04); border:1px solid var(--border2); border-radius:6px; padding:0.8rem; }
+.lc-stat-val { font-family:var(--tech); font-weight:700; font-size:1.1rem; color:var(--cyan); }
+.lc-stat-label { font-size:0.65rem; color:var(--muted); margin-top:0.2rem; letter-spacing:0.06em; }
+.lc-xp-gained { font-family:var(--tech); font-weight:900; font-size:1.5rem; color:var(--yellow); text-shadow:var(--glow-yellow); margin:0.8rem 0; }
+.lc-hint { font-size:0.75rem; color:var(--muted); margin-bottom:1.2rem; line-height:1.6; }
+
+/* ── TROPHY ROOM ── */
+#screen-trophy {
+  padding:2rem;
+  background: radial-gradient(ellipse at top, rgba(50,30,0,0.3) 0%, var(--bg) 60%);
+}
+.trophy-room {
+  max-width:820px;
+  width:100%;
+  text-align:center;
+}
+.trophy-title { font-family:var(--pixel); font-size:0.7rem; color:var(--yellow); text-shadow:var(--glow-yellow); letter-spacing:0.12em; margin-bottom:0.3rem; }
+.trophy-sub { font-size:0.82rem; color:var(--muted); margin-bottom:2rem; }
+.trophy-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:2rem; }
+.trophy-card {
+  background:var(--panel);
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  padding:1.2rem;
+  transition:all 0.25s;
+}
+.trophy-card.earned { border-color:var(--yellow2); background:linear-gradient(135deg, rgba(255,215,0,0.06), var(--panel)); }
+.trophy-card.earned:hover { border-color:var(--yellow); transform:translateY(-4px); box-shadow:var(--glow-yellow); }
+.trophy-card.locked-t { filter:grayscale(1); opacity:0.35; }
+.trophy-icon-big { font-size:2.5rem; margin-bottom:0.5rem; }
+.trophy-name { font-family:var(--pixel); font-size:0.35rem; letter-spacing:0.06em; color:var(--yellow); margin-bottom:0.3rem; line-height:1.6; }
+.trophy-card.locked-t .trophy-name { color:var(--muted); }
+.trophy-desc { font-size:0.68rem; color:var(--muted); line-height:1.5; }
+
+.final-cert {
+  background: linear-gradient(135deg, var(--panel2), rgba(0,30,80,0.8));
+  border:2px solid var(--cyan);
+  border-radius:12px;
+  padding:2rem;
+  position:relative;
+  overflow:hidden;
+}
+.final-cert::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, var(--purple), var(--cyan), var(--green), var(--yellow)); }
+.final-cert-title { font-family:var(--tech); font-weight:900; font-size:1.5rem; color:var(--cyan); text-shadow:var(--glow-cyan); margin-bottom:0.3rem; }
+.final-cert-sub { font-size:0.85rem; color:var(--muted); margin-bottom:0.8rem; }
+.final-stats { display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap; margin:1rem 0; }
+.final-stat { text-align:center; }
+.final-stat-num { font-family:var(--tech); font-weight:900; font-size:1.8rem; color:var(--yellow); text-shadow:var(--glow-yellow); }
+.final-stat-label { font-size:0.68rem; color:var(--muted); letter-spacing:0.08em; }
+
+/* ── SPLASH ── */
+#screen-splash {
+  background: radial-gradient(ellipse at center, rgba(0,30,80,0.6) 0%, var(--bg) 70%);
+}
+.splash-content { text-align:center; max-width:620px; }
+.splash-logo { font-family:var(--tech); font-weight:900; font-size:clamp(2rem,5vw,3.5rem); color:var(--cyan); text-shadow:var(--glow-cyan); letter-spacing:0.06em; margin-bottom:0.2rem; animation:logoGlow 2s infinite alternate; }
+@keyframes logoGlow { from{text-shadow:0 0 10px rgba(0,245,255,0.4)} to{text-shadow:0 0 30px rgba(0,245,255,0.9), 0 0 60px rgba(0,245,255,0.3)} }
+.splash-logo span { color:var(--yellow); text-shadow:var(--glow-yellow); }
+.splash-tagline { font-family:var(--pixel); font-size:0.45rem; color:var(--muted); letter-spacing:0.15em; margin-bottom:2rem; }
+.splash-desc { font-size:0.88rem; line-height:1.8; color:var(--text); margin-bottom:1.5rem; max-width:50ch; margin-inline:auto; }
+.splash-features { display:flex; gap:1.2rem; justify-content:center; flex-wrap:wrap; margin-bottom:2rem; }
+.splash-feat {
+  display:flex; align-items:center; gap:0.5rem;
+  background:var(--panel);
+  border:1px solid var(--border2);
+  border-radius:100px;
+  padding:0.4rem 1rem;
+  font-size:0.72rem;
+  color:var(--text);
+}
+.splash-feat .feat-icon { font-size:0.9rem; }
+.splash-press { font-family:var(--pixel); font-size:0.45rem; color:var(--cyan); letter-spacing:0.12em; animation:blink 1s infinite; margin-top:0.5rem; }
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* ── NOTIFICATION ── */
+.notification {
+  position:fixed;
+  top:80px; right:1.5rem;
+  background:var(--panel);
+  border:1.5px solid var(--cyan);
+  border-radius:8px;
+  padding:0.8rem 1.2rem;
+  font-size:0.78rem;
+  color:var(--cyan);
+  z-index:9990;
+  animation: notifSlide 0.3s ease;
+  max-width:280px;
+  box-shadow:var(--glow-cyan);
+}
+.notification.success { border-color:var(--green); color:var(--green); box-shadow:var(--glow-green); }
+.notification.danger { border-color:var(--red); color:var(--red); box-shadow:var(--glow-red); }
+@keyframes notifSlide{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:var(--panel); }
+::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+/* ── FLASH EFFECTS ── */
+.flash-good { animation:flashGood 0.4s ease; }
+.flash-bad { animation:flashBad 0.4s ease; }
+@keyframes flashGood{0%{background:rgba(0,255,136,0.15)}100%{background:transparent}}
+@keyframes flashBad{0%{background:rgba(255,51,85,0.15)}100%{background:transparent}}
+
+@media(max-width:700px){
+  .world-map{grid-template-columns:repeat(3,1fr)}
+  .answer-grid{grid-template-columns:1fr}
+  .trophy-grid{grid-template-columns:repeat(2,1fr)}
+  .boss-actions{grid-template-columns:1fr}
+  .email-sort{flex-direction:column}
+  .pw-rules{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- STARS -->
+<div class="stars" id="stars"></div>
+
+<!-- HUD -->
+<div class="hud" id="hud" style="display:none">
+  <div class="hud-logo">CYBER<span>QUEST</span></div>
+  <div class="hud-center">
+    <div class="stat-block">
+      <div class="stat-label">SCORE</div>
+      <div class="stat-val yellow" id="hud-score">0</div>
+    </div>
+    <div class="hp-bar-wrap">
+      <div class="stat-label">AGENT HEALTH</div>
+      <div class="hp-track"><div class="hp-fill" id="hp-fill" style="width:100%"></div></div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">LIVES</div>
+      <div class="lives-display" id="lives-display">
+        <span class="life-heart">❤️</span><span class="life-heart">❤️</span><span class="life-heart">❤️</span>
+      </div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">XP</div>
+      <div class="stat-val cyan" id="hud-xp">0</div>
+    </div>
+    <div class="inventory-bar">
+      <div class="inv-label">ITEMS</div>
+      <div class="inv-slot" id="inv-0" onclick="useItem(0)">🛡️<div class="inv-count" id="inv-0-c">1</div><div class="inv-tooltip">FIREWALL SHIELD<br>Block 1 wrong answer</div></div>
+      <div class="inv-slot" id="inv-1" onclick="useItem(1)">⚡<div class="inv-count" id="inv-1-c">1</div><div class="inv-tooltip">TIME BOOST<br>+15 seconds</div></div>
+      <div class="inv-slot" id="inv-2" onclick="useItem(2)">💊<div class="inv-count" id="inv-2-c">1</div><div class="inv-tooltip">HP RESTORE<br>Restore 25% HP</div></div>
+      <div class="inv-slot empty" id="inv-3">🔒<div class="inv-tooltip">DECRYPT KEY<br>Unlock at Level 4</div></div>
+    </div>
+  </div>
+  <div class="hud-right">
+    <div class="level-badge" id="level-badge">LEVEL 1</div>
+    <button class="btn btn-cyan" onclick="showScreen('map')" style="font-size:0.35rem;padding:0.5rem 0.8rem;">🗺 MAP</button>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-strip" id="prog-strip" style="display:none">
+  <div class="progress-glow" id="prog-glow" style="width:0%"></div>
+</div>
+
+<!-- SCREENS -->
+<div class="game-container">
+
+  <!-- SPLASH -->
+  <div class="screen active" id="screen-splash">
+    <div class="splash-content">
+      <div class="splash-logo">CYBER<span>QUEST</span></div>
+      <div class="splash-tagline">THE DATA SECURITY MISSION</div>
+      <p class="splash-desc">
+        The corporation's servers are under attack. As a newly recruited <strong style="color:var(--cyan)">Cyber Agent</strong>, you must battle hackers, defeat phishing scams, and secure the network — before the <strong style="color:var(--red)">Dark Byte</strong> virus corrupts everything.
+      </p>
+      <div class="splash-features">
+        <div class="splash-feat"><span class="feat-icon">🗺️</span> World Map</div>
+        <div class="splash-feat"><span class="feat-icon">⚔️</span> Boss Battles</div>
+        <div class="splash-feat"><span class="feat-icon">🧩</span> Puzzles</div>
+        <div class="splash-feat"><span class="feat-icon">🏆</span> Trophies</div>
+        <div class="splash-feat"><span class="feat-icon">🎒</span> Inventory</div>
+        <div class="splash-feat"><span class="feat-icon">⏱️</span> Timed Challenges</div>
+      </div>
+      <button class="btn btn-cyan" onclick="startGame()" style="font-size:0.6rem;padding:1rem 2.5rem;margin-bottom:1rem;">▶ START MISSION</button>
+      <div class="splash-press">PRESS START TO BEGIN YOUR MISSION</div>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div class="screen" id="screen-map">
+    <div class="map-title">🗺 MISSION WORLD MAP</div>
+    <div class="map-subtitle">Select a mission node to begin. Complete zones to unlock new areas.</div>
+    <div class="world-map">
+      <div class="map-node unlocked" onclick="startMission(1)" id="node-1">
+        <span class="node-badge badge-new">START</span>
+        <span class="node-icon">🏢</span>
+        <div class="node-name">ZONE 1<br>THE LOBBY</div>
+        <div class="node-type">Password Security</div>
+        <div class="node-stars" id="stars-1"><span class="node-star">⭐</span><span class="node-star" style="opacity:0.3">⭐</span><span class="node-star" style="opacity:0.3">⭐</span></div>
+      </div>
+      <div class="map-node locked" id="node-2">
+        <span class="node-badge badge-locked">LOCKED</span>
+        <span class="node-icon">📧</span>
+        <div class="node-name">ZONE 2<br>THE INBOX</div>
+        <div class="node-type">Phishing Detection</div>
+        <div class="node-stars"><span class="node-star" style="opacity:0.3">⭐</span><span class="node-star" style="opacity:0.3">⭐</span><span class="node-star" style="opacity:0.3">⭐</span></div>
+      </div>
+      <div class="map-node locked" id="node-3">
+        <span class="node-badge badge-locked">LOCKED</span>
+        <span class="node-icon">🌐</span>
+        <div class="node-name">ZONE 3<br>THE WEB</div>
+        <div class="node-type">Safe Browsing</div>
+        <div class="node-stars"><span class="node-star" style="opacity:0.3">⭐</span><span class="node-star" style="opacity:0.3">⭐</span><span class="node-star" style="opacity:0.3">⭐</span></div>
+      </div>
+      <div class="map-node locked" id="node-4">
+        <span class="node-badge badge-locked">LOCKED</span>
+        <span class="node-icon">🔐</span>
+        <div class="node-name">ZONE 4<br>THE VAULT</div>
+        <div class="node-type">Data Classification</div>
+        <div class="node-stars"><span class="node-star" style="opacity:0.3">⭐</span><span class="node-star" style="opacity:0.3">⭐</span><span class="node-star" style="opacity:0.3">⭐</span></div>
+      </div>
+      <div class="map-node locked boss-node" id="node-5">
+        <span class="node-badge badge-boss">BOSS</span>
+        <span class="node-icon">💀</span>
+        <div class="node-name">FINAL BOSS<br>DARK BYTE HQ</div>
+        <div class="node-type">⚠️ All Skills Required</div>
+        <div class="node-stars"><span class="node-star" style="opacity:0.3">⭐</span><span class="node-star" style="opacity:0.3">⭐</span><span class="node-star" style="opacity:0.3">⭐</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIALOGUE -->
+  <div class="screen" id="screen-dialogue">
+    <div class="dialogue-scene">
+      <div class="scene-visual" id="scene-visual">
+        <div class="scene-characters" id="scene-chars"></div>
+      </div>
+      <div class="dialogue-box">
+        <div class="dialogue-speaker" id="dlg-speaker">DIRECTOR NOVA</div>
+        <div class="dialogue-text" id="dlg-text">Loading...</div>
+        <div class="dialogue-actions" id="dlg-actions"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="screen-quiz">
+    <div class="quiz-wrap">
+      <div class="quiz-header">
+        <div class="quiz-level-title" id="quiz-zone-title">ZONE 1 — PASSWORD SECURITY</div>
+        <div class="quiz-progress-info" id="quiz-prog-info">QUESTION 1 OF 4</div>
+      </div>
+      <div class="timer-bar-wrap" id="timer-wrap" style="display:none">
+        <div class="timer-label"><span>⏱ TIME REMAINING</span><span id="timer-num">30</span></div>
+        <div class="timer-track"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+      </div>
+      <div class="scenario-panel">
+        <div class="scenario-type" id="q-type">SECURITY CHALLENGE</div>
+        <div class="scenario-q" id="q-text">Loading question...</div>
+      </div>
+      <div class="answer-grid" id="answer-grid"></div>
+      <div class="feedback-panel" id="feedback-panel"></div>
+    </div>
+  </div>
+
+  <!-- PUZZLE -->
+  <div class="screen" id="screen-puzzle">
+    <div class="puzzle-wrap" id="puzzle-inner"></div>
+  </div>
+
+  <!-- BOSS -->
+  <div class="screen" id="screen-boss">
+    <div class="boss-arena">
+      <div class="boss-header">
+        <div style="flex:1">
+          <div style="font-family:var(--pixel);font-size:0.4rem;color:var(--muted);letter-spacing:0.1em;margin-bottom:0.3rem;">AGENT STATUS</div>
+          <div class="hp-track" style="width:160px"><div class="hp-fill" id="boss-player-hp" style="width:100%"></div></div>
+          <div style="font-size:0.65rem;color:var(--muted);margin-top:0.2rem;">Player HP: <span id="boss-php-num">100</span>/100</div>
+        </div>
+        <div class="boss-vs">VS</div>
+        <div class="boss-hp-block">
+          <div class="boss-hp-label">☠ DARK BYTE — HP: <span id="boss-hp-num">100</span>/100</div>
+          <div class="boss-hp-track"><div class="boss-hp-fill" id="boss-hp-fill" style="width:100%"></div></div>
+        </div>
+      </div>
+      <div class="boss-scene">
+        <div class="boss-sprite" id="boss-sprite">👾</div>
+        <div class="boss-attack-text" id="boss-attack-text">
+          <span class="attack-name">☠ DARK BYTE AWAKENS</span>
+          The final virus has breached the mainframe. Use your cybersecurity knowledge to defeat it. Each correct answer deals damage. Wrong answers cost you HP!
+        </div>
+      </div>
+      <div class="boss-actions" id="boss-moves"></div>
+      <div class="boss-log" id="boss-log">> Initiating final security protocol...<br>> DARK BYTE detected in sector 7...<br>> Engage cyber defenses!</div>
+    </div>
+  </div>
+
+  <!-- LEVEL COMPLETE -->
+  <div class="screen" id="screen-level-complete">
+    <div class="level-complete-box">
+      <div class="lc-icon" id="lc-icon">🏅</div>
+      <div class="lc-title">MISSION COMPLETE!</div>
+      <div class="lc-level" id="lc-level-name">ZONE 1 CLEARED</div>
+      <div class="lc-stars" id="lc-stars">
+        <span class="lc-star">⭐</span><span class="lc-star">⭐</span><span class="lc-star">⭐</span>
+      </div>
+      <div class="lc-stats">
+        <div class="lc-stat"><div class="lc-stat-val" id="lc-correct">4/4</div><div class="lc-stat-label">CORRECT</div></div>
+        <div class="lc-stat"><div class="lc-stat-val" id="lc-time">28s</div><div class="lc-stat-label">AVG TIME</div></div>
+        <div class="lc-stat"><div class="lc-stat-val" id="lc-combo">x3</div><div class="lc-stat-label">COMBO</div></div>
+      </div>
+      <div class="lc-xp-gained" id="lc-xp">+250 XP</div>
+      <div class="lc-hint" id="lc-hint">You've mastered password security fundamentals!</div>
+      <div style="display:flex;gap:0.8rem;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-yellow" onclick="showScreen('map')">🗺 WORLD MAP</button>
+        <button class="btn btn-cyan" id="lc-next-btn" onclick="goNextMission()">NEXT ZONE ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TROPHY -->
+  <div class="screen" id="screen-trophy" style="overflow-y:auto;justify-content:flex-start;padding-top:2rem;">
+    <div class="trophy-room">
+      <div class="trophy-title">🏆 TROPHY ROOM</div>
+      <div class="trophy-sub">Achievements earned on your cyber mission</div>
+      <div class="trophy-grid" id="trophy-grid"></div>
+      <div class="final-cert" id="final-cert" style="display:none">
+        <div class="final-cert-title">🎓 CYBER AGENT CERTIFIED</div>
+        <div class="final-cert-sub">You have successfully completed CyberQuest: The Data Security Mission</div>
+        <div class="final-stats">
+          <div class="final-stat"><div class="final-stat-num" id="fc-score">0</div><div class="final-stat-label">TOTAL SCORE</div></div>
+          <div class="final-stat"><div class="final-stat-num" id="fc-xp">0</div><div class="final-stat-label">XP EARNED</div></div>
+          <div class="final-stat"><div class="final-stat-num" id="fc-trophies">0</div><div class="final-stat-label">TROPHIES</div></div>
+        </div>
+        <div style="font-family:var(--pixel);font-size:0.38rem;color:var(--cyan);letter-spacing:0.1em;margin-top:0.8rem;">DATA SECURITY AWARENESS · 2026</div>
+      </div>
+      <div style="margin-top:1.5rem;display:flex;gap:0.8rem;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-cyan" onclick="showScreen('map')">🗺 WORLD MAP</button>
+        <button class="btn btn-yellow" onclick="showTrophyFinal()">🏆 SHOW CERTIFICATE</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── STAR FIELD ──
+(function(){
+  const s=document.getElementById('stars');
+  for(let i=0;i<120;i++){
+    const star=document.createElement('div');
+    const size=Math.random()*2+0.5;
+    star.className='star';
+    star.style.cssText=`width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${2+Math.random()*4}s;--del:${-Math.random()*4}s;`;
+    s.appendChild(star);
+  }
+})();
+
+// ── GAME STATE ──
+const G = {
+  score:0, xp:0, hp:100, lives:3,
+  currentMission:0, currentQ:0,
+  combo:0, maxCombo:0, correctCount:0,
+  timerInterval:null, timeLeft:30,
+  completedMissions:[],
+  items:{shield:1, time:1, hp:1},
+  shieldActive:false,
+  bossHP:100, bossPlayerHP:100,
+  bossQ:0, bossCorrect:0,
+  trophiesEarned:[]
+};
+
+// ── TROPHIES ──
+const TROPHIES = [
+  {id:'first_blood',icon:'⚔️',name:'FIRST STRIKE',desc:'Answer your first question correctly',locked:true},
+  {id:'pw_master',icon:'🔐',name:'PASS DEFENDER',desc:'Complete Zone 1 — Password Security',locked:true},
+  {id:'phish_hunter',icon:'🎣',name:'PHISH HUNTER',desc:'Complete Zone 2 — Phishing Detection',locked:true},
+  {id:'web_shield',icon:'🛡️',name:'WEB GUARDIAN',desc:'Complete Zone 3 — Safe Browsing',locked:true},
+  {id:'data_keeper',icon:'💾',name:'DATA KEEPER',desc:'Complete Zone 4 — Data Classification',locked:true},
+  {id:'boss_slayer',icon:'💀',name:'VIRUS SLAYER',desc:'Defeat Dark Byte in the final boss battle',locked:true},
+  {id:'no_damage',icon:'💎',name:'UNTOUCHABLE',desc:'Complete a zone without losing HP',locked:true},
+  {id:'speed_run',icon:'⚡',name:'SPEEDRUNNER',desc:'Answer 3 questions in under 5 seconds each',locked:true},
+  {id:'combo_king',icon:'🔥',name:'COMBO KING',desc:'Get a 4x answer combo',locked:true},
+  {id:'perfect',icon:'🌟',name:'PERFECT AGENT',desc:'100% score on any mission',locked:true},
+  {id:'item_user',icon:'🎒',name:'TACTICIAN',desc:'Use all 3 power-up items',locked:true},
+  {id:'cyber_cert',icon:'🎓',name:'CYBER CERTIFIED',desc:'Complete the entire CyberQuest campaign',locked:true},
+];
+
+function earnTrophy(id){
+  const t=TROPHIES.find(x=>x.id===id);
+  if(t&&t.locked){
+    t.locked=false;
+    G.trophiesEarned.push(id);
+    showNotif(`🏆 TROPHY: ${t.name}!`,'success');
+    addXP(50);
+  }
+}
+
+// ── MISSIONS DATA ──
+const MISSIONS = [
+  // 0 = unused
+  null,
+  // 1: Password Security
+  {
+    id:1, name:'ZONE 1 — THE LOBBY', subtitle:'Password Security', icon:'🏢',
+    intro:[
+      {speaker:'DIRECTOR NOVA',text:`Welcome, Agent. I'm Director Nova — your handler at CyberCorp. Our systems are under constant attack. Your first mission: <span class="highlight">secure the password infrastructure</span> in the lobby. The hackers are trying brute-force attacks right now.`,chars:[{sprite:'👩‍💼',name:'DIRECTOR NOVA',side:'left',speaking:true},{sprite:'🤖',name:'HACKER BOT',side:'right',speaking:false}]},
+      {speaker:'DIRECTOR NOVA',text:`Remember: a strong password is your first line of defense. <span class="danger">Over 80% of breaches</span> involve compromised credentials. Don't let the hackers in. Prove you know how to build an impenetrable password!`,chars:[{sprite:'👩‍💼',name:'DIRECTOR NOVA',side:'left',speaking:true},{sprite:'🤖',name:'HACKER BOT',side:'right',speaking:false}]},
+    ],
+    type:'quiz+puzzle',
+    questions:[
+      {type:'SECURITY CHALLENGE',q:`A coworker tells you their password is <span class="code">Company2024!</span>. What's the MAIN security problem?`,opts:["It has too many characters","It contains a predictable pattern (company name + year + !)","It uses a special character","It is too hard to remember"],correct:1,exp:`"Company2024!" follows a very common pattern — company name + year + punctuation. Password-cracking tools specifically target these patterns. A strong password should use random words or a passphrase like <strong>"Purple$River#42Lamp"</strong>.`},
+      {type:'THREAT DETECTION',q:`You receive a login alert: <span class="code">5 failed attempts</span> on your account from IP <span class="code">185.220.101.x</span> (Russia). You don't recognize this. What do you do FIRST?`,opts:["Wait to see if it stops","Change your password immediately and notify IT Security","Reply to the alert email asking for more info","Check if a colleague borrowed your login"],correct:1,exp:`Immediate password change + IT notification is correct. Failed login attempts from unknown foreign IPs indicate a brute-force or credential stuffing attack. Every second counts — the attacker may already have your username from a data breach.`},
+      {type:'POLICY QUIZ',q:`Which of the following is the BEST password policy for corporate accounts?`,opts:["Password123! changed every 30 days","A 16+ character passphrase with MFA enabled","The same password across all systems for convenience","Write it on a sticky note near your workstation"],correct:1,exp:`NIST guidelines recommend <strong>long passphrases</strong> (16+ chars) combined with <strong>Multi-Factor Authentication (MFA)</strong>. MFA alone blocks 99.9% of automated attacks even if your password is compromised. Never reuse passwords — use a password manager instead.`},
+      {type:'QUICK FIRE',q:`Your company enforces <span class="code">90-day password resets</span>. Research shows this policy often HURTS security. Why?`,opts:["Users choose longer passwords","Users choose simpler passwords or add predictable increments (e.g., Pass1->Pass2)","Users never forget their passwords","IT systems work faster"],correct:1,exp:`Frequent forced resets cause "password fatigue" — users end up choosing weaker passwords or simply adding a number to the end (Password1 → Password2). NIST now recommends resetting passwords only when compromise is suspected, and focusing on <strong>length and MFA instead</strong>.`},
+    ],
+    puzzle:{type:'password'},
+    complete:{icon:'🔐',hint:"You've secured the lobby! Passwords are your digital keys — always keep them long, unique, and backed by MFA.",xp:200,trophy:'pw_master'}
+  },
+  // 2: Phishing
+  {
+    id:2, name:'ZONE 2 — THE INBOX', subtitle:'Phishing Detection', icon:'📧',
+    intro:[
+      {speaker:'AGENT CIPHER',text:`Agent, I'm Cipher — your field operative. The hackers have shifted tactics. They're now sending <span class="danger">phishing emails</span> to our employees. Three people have already clicked malicious links this week. We need you to train the team NOW.`,chars:[{sprite:'🕵️',name:'AGENT CIPHER',side:'left',speaking:true},{sprite:'🦹',name:'PHISH MASTER',side:'right',speaking:false}]},
+      {speaker:'PHISH MASTER',text:`Hehehe... your employees are EASY targets. One fake email and your entire network is mine. Can your little agent really stop me? <span class="danger">I've fooled 94% of professionals</span> in tests. You don't stand a chance.`,chars:[{sprite:'🕵️',name:'AGENT CIPHER',side:'left',speaking:false},{sprite:'🦹',name:'PHISH MASTER',side:'right',speaking:true}]},
+    ],
+    type:'quiz+puzzle',
+    questions:[
+      {type:'PHISHING ALERT',q:`You receive an email from <span class="code">payroll@cornpany.com</span> (note the spelling) saying: <em>"Urgent: Update your bank details for salary payment by EOD or payment will be delayed."</em> What do you do?`,opts:["Click the link and update your details — you need your salary","Forward to a friend to check","Report it to IT Security and delete it — it's a phishing attempt","Reply asking for more information"],correct:2,exp:`Classic phishing signals: <strong>1)</strong> Misspelled domain (cornpany vs company). <strong>2)</strong> Urgency + financial threat. <strong>3)</strong> Request for sensitive personal data via email. NEVER click links in suspicious emails — report to IT and delete immediately.`},
+      {type:'SPEAR PHISH',q:`An email arrives from your CEO's exact email address asking you to urgently wire $15,000 to a vendor. The CEO is traveling. What is this attack called and what do you do?`,opts:["It's legitimate — the CEO is traveling and needs help","Business Email Compromise (BEC) / Whaling — verify via phone call before any action","Mass phishing — ignore it","Spam — mark as junk and move on"],correct:1,exp:`This is <strong>Business Email Compromise (BEC)</strong> — a targeted attack where hackers spoof or compromise executive email accounts. The US FBI reports $26B+ in losses from BEC annually. ALWAYS verify financial wire requests via a separate communication channel (call the CEO directly).`},
+      {type:'URL INSPECTION',q:`You hover over a link in an email and see: <span class="code">https://microsoft-login.update-account.ru/secure</span>. Is this safe?`,opts:["Yes — it says microsoft and secure","Yes — it uses HTTPS so it must be encrypted and safe","No — the actual domain is update-account.ru, not microsoft.com","No — all email links are dangerous"],correct:2,exp:`The REAL domain is <strong>update-account.ru</strong> (a Russian domain). "microsoft-login" is just a subdomain — attackers put brand names in subdomains to fool people. Also, HTTPS only means the connection is encrypted — it says nothing about whether the site is legitimate. Always check the root domain before clicking.`},
+      {type:'DEFENSE PROTOCOL',q:`What is the BEST organizational defense against phishing attacks?`,opts:["A firewall that blocks all emails","Security Awareness Training + Simulated Phishing Tests + Email Filtering (layered defense)","Making employees memorize a list of phishing keywords","Printing phishing warnings on office walls"],correct:1,exp:`A <strong>layered defense</strong> is most effective: (1) Technical controls — email filtering, DMARC/DKIM/SPF. (2) Human training — simulated phishing tests with immediate feedback. (3) Reporting culture — employees who report phishing, not click. No single control is enough alone.`},
+    ],
+    puzzle:{type:'email-sort'},
+    complete:{icon:'🎣',hint:"Phishing defeated! Remember: when in doubt, pick up the phone to verify. One call can stop a $15M breach.",xp:250,trophy:'phish_hunter'}
+  },
+  // 3: Safe Browsing
+  {
+    id:3, name:'ZONE 3 — THE WEB', subtitle:'Safe Browsing', icon:'🌐',
+    intro:[
+      {speaker:'TECHBOT 9000',text:`Greetings, Agent. I am TechBot 9000. Our analysts have detected <span class="danger">malicious websites</span> targeting CyberCorp employees. Drive-by downloads. Fake software updates. Malvertising. The web is a minefield today.`,chars:[{sprite:'🤖',name:'TECHBOT 9000',side:'left',speaking:true},{sprite:'💻',name:'WEB CRAWLER',side:'right',speaking:false}]},
+    ],
+    type:'quiz',
+    questions:[
+      {type:'WEB SECURITY',q:`You visit a site to download a free PDF converter. Before the download, a popup says: <em>"Your computer has a virus! Click here to install our FREE Security Scanner now!"</em> What is this?`,opts:["A helpful warning from your browser","Scareware / Malvertising — close immediately and do not click","A legitimate antivirus tool being helpful","A Windows system alert"],correct:1,exp:`This is <strong>Scareware</strong> — a form of social engineering that creates panic to trick you into installing malware disguised as security software. Legitimate security tools never display popup warnings on random websites. Close the tab, clear your cache, and report to IT.`},
+      {type:'NETWORK SAFETY',q:`You're at a coffee shop using free public Wi-Fi. You need to access work email. What's the SAFEST approach?`,opts:["Connect normally — free Wi-Fi is the same as home Wi-Fi","Use a VPN before accessing any corporate resources","Only check email — don't do banking","Ask the barista if the Wi-Fi is secure"],correct:1,exp:`<strong>VPN (Virtual Private Network)</strong> encrypts your traffic and creates a secure tunnel even on untrusted networks. Public Wi-Fi is vulnerable to Man-in-the-Middle attacks — attackers can intercept unencrypted traffic. Always connect to corporate VPN before accessing work systems on public networks.`},
+      {type:'SOFTWARE SAFETY',q:`A popup appears on your work laptop: <em>"Critical Adobe Flash Update Available — Download Now!"</em> What do you do?`,opts:["Download and install immediately — updates are always good","Verify with IT before installing any software on corporate devices","Install only if it says critical","Adobe Flash is safe so always update it"],correct:1,exp:`<strong>Never install software on corporate devices without IT approval.</strong> This could be a fake update delivering malware. Additionally, Adobe Flash was permanently discontinued in 2020 — any "Flash update" popup is malware. All corporate software updates should come through official IT channels (WSUS, SCCM, etc.).`},
+      {type:'BROWSER SECURITY',q:`Which combination provides the STRONGEST web browsing security for corporate users?`,opts:["Incognito mode only","Up-to-date browser + HTTPS-only mode + corporate proxy + no unauthorized extensions","Using only Internet Explorer (it's on every Windows PC)","Disabling JavaScript to block all attacks"],correct:1,exp:`Defense-in-depth for browsing: <strong>1)</strong> Keep browser updated (patches known exploits). <strong>2)</strong> HTTPS-only mode (blocks downgrade attacks). <strong>3)</strong> Corporate proxy/filter (blocks malicious domains). <strong>4)</strong> No unauthorized extensions (extensions have full page access). Incognito only hides local history — it doesn't protect you from threats.`},
+    ],
+    complete:{icon:'🌐',hint:"Web zone secured! The internet is a powerful tool — and a battlefield. VPN, updates, and vigilance are your armor.",xp:300,trophy:'web_shield'}
+  },
+  // 4: Data Classification
+  {
+    id:4, name:'ZONE 4 — THE VAULT', subtitle:'Data Classification', icon:'🔐',
+    intro:[
+      {speaker:'DIRECTOR NOVA',text:`Agent, you've made it to the most sensitive zone — The Vault. This is where CyberCorp stores its most valuable data: customer records, financials, IP. The Dark Byte is targeting this specifically. <span class="highlight">Data classification</span> is the key to knowing what to protect most.`,chars:[{sprite:'👩‍💼',name:'DIRECTOR NOVA',side:'left',speaking:true},{sprite:'💀',name:'DARK BYTE',side:'right',speaking:false}]},
+      {speaker:'DARK BYTE',text:`So you've reached the vault, agent. Let's see how well you understand DATA. One wrong move and <span class="danger">confidential records will be mine</span>. I've already stolen from 3 Fortune 500 companies this year. You're next.`,chars:[{sprite:'👩‍💼',name:'DIRECTOR NOVA',side:'left',speaking:false},{sprite:'💀',name:'DARK BYTE',side:'right',speaking:true}]},
+    ],
+    type:'quiz',
+    questions:[
+      {type:'DATA CLASSIFICATION',q:`A file contains employees' <span class="code">Social Security Numbers, salaries, and performance reviews</span>. What classification level does this require?`,opts:["Public — anyone can view it","Internal — for all employees","Confidential — restricted to HR and management only","Unclassified — it's just HR data"],correct:2,exp:`PII (Personally Identifiable Information) combined with financial data requires <strong>CONFIDENTIAL or higher classification</strong>. This data is subject to GDPR, CCPA, and SOX regulations. Access must be role-based, it must be encrypted at rest and in transit, and access logs must be maintained for audit purposes.`},
+      {type:'DATA HANDLING',q:`You finish a project and have a USB drive with classified client data. The project is over. What do you do?`,opts:["Keep the USB as a backup","Leave it in your desk drawer","Submit it to IT for secure destruction per company data retention policy","Delete the files and reuse the USB"],correct:2,exp:`Classified data on physical media must follow <strong>formal data destruction procedures</strong>: logging, degaussing, or physical destruction. Simply deleting files doesn\'t destroy data — it can be recovered. Leaving classified data on personal USBs creates enormous regulatory and legal liability. Always follow your company\'s data retention and destruction policy.`},
+      {type:'INCIDENT RESPONSE',q:`You accidentally send a spreadsheet containing <span class="code">customer credit card numbers</span> to the wrong email address. What's the correct response?`,opts:["Hope the recipient doesn't notice","Delete the sent email — it cancels the delivery","Immediately report it to your manager and IT Security as a data breach incident","Send a follow-up email asking them to delete it"],correct:2,exp:`This is a <strong>data breach</strong> requiring immediate incident response. Under GDPR, you have 72 hours to report to your Data Protection Authority. Under PCI-DSS, cardholder data exposure requires mandatory notification. Attempting to hide a breach (deleting emails) makes the legal situation dramatically worse. Always report immediately.`},
+      {type:'POLICY QUIZ',q:`Which data handling practice violates data minimization principles (GDPR Article 5)?`,opts:["Collecting only customer name and email for a newsletter","Storing customer purchase history for 7 years for tax compliance","Collecting birthdate, medical history, and location for a discount coupon program","Encrypting customer data in the database"],correct:2,exp:`<strong>Data minimization</strong> means collecting only what is strictly necessary for the stated purpose. Collecting birthdates, medical history, and location data for a discount coupon program goes far beyond what's needed — violating GDPR Article 5(1)(c). This could result in fines of up to €20M or 4% of global annual revenue.`},
+    ],
+    complete:{icon:'🔐',hint:"The Vault is secure! Data classification and proper handling protects both the company and your customers. Know your data, protect it accordingly.",xp:350,trophy:'data_keeper'}
+  },
+];
+
+// ── BOSS QUESTIONS ──
+const BOSS_QUESTIONS = [
+  {name:'SOCIAL ENGINEERING STRIKE',desc:"Dark Byte sends a fake IT support call asking for your login credentials to fix an urgent server issue. What do you do?",opts:["Provide credentials — IT urgently needs them","Refuse — IT will never ask for passwords by phone; report to security"],correct:1,dmg:25},
+  {name:"RANSOMWARE PAYLOAD",desc:"An employee opened a phishing attachment and all files on the network share are now encrypted with .darkbyte extension. First action?",opts:["Pay the ransom immediately","Isolate infected systems from the network, alert IT, activate incident response plan"],correct:1,dmg:25},
+  {name:"INSIDER THREAT VECTOR",desc:"A colleague offers to share their admin credentials so you can finish a project faster while they're on vacation. What do you do?",opts:["Accept — it helps the team","Decline — shared credentials violate least-privilege and create audit liability. Request proper access through IT."],correct:1,dmg:25},
+  {name:"FINAL EXPLOIT",desc:"Dark Byte offers to stop the attack if you give up ONE employee's login. Is this ever acceptable?",opts:["Yes if it stops the attack","No — never sacrifice credentials; each account is a separate breach; engage law enforcement and incident response"],correct:1,dmg:25},
+];
+
+let dlgStep=0, dlgData=[], dlgCallback=null;
+
+// ── NAVIGATION ──
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+}
+
+function startGame(){
+  document.getElementById('hud').style.display='flex';
+  document.getElementById('prog-strip').style.display='block';
+  buildTrophyGrid();
+  showScreen('map');
+  updateHUD();
+}
+
+function startMission(n){
+  const node=document.getElementById('node-'+n);
+  if(node.classList.contains('locked'))return;
+  if(n===5){ startBoss(); return; }
+  const m=MISSIONS[n];
+  G.currentMission=n;
+  G.currentQ=0;
+  G.correctCount=0;
+  G.combo=0;
+  document.getElementById('level-badge').textContent='LEVEL '+n;
+  if(m.intro&&m.intro.length>0){
+    startDialogue(m.intro, ()=>startQuiz(m));
+  } else {
+    startQuiz(m);
+  }
+}
+
+// ── DIALOGUE ──
+function startDialogue(data, callback){
+  dlgData=data; dlgStep=0; dlgCallback=callback;
+  showScreen('dialogue');
+  renderDialogue();
+}
+
+function renderDialogue(){
+  const d=dlgData[dlgStep];
+  document.getElementById('dlg-speaker').textContent=d.speaker;
+  document.getElementById('dlg-text').innerHTML=d.text;
+  const chars=document.getElementById('scene-chars');
+  chars.innerHTML='';
+  d.chars.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='character'+(c.speaking?' speaking':'');
+    var isVillain=c.name.includes('HACKER')||c.name.includes('PHISH')||c.name.includes('DARK')||c.name.includes('WEB');
+    el.innerHTML='<div class="char-sprite'+(isVillain?' villain':'')+'">'+c.sprite+'</div><div class="char-name'+(isVillain?' villain':'')+'">'+c.name+'</div>';
+    chars.appendChild(el);
+  });
+  const actions=document.getElementById('dlg-actions');
+  actions.innerHTML='';
+  if(dlgStep<dlgData.length-1){
+    const btn=document.createElement('button');
+    btn.className='btn btn-cyan';
+    btn.textContent='CONTINUE ▶';
+    btn.onclick=()=>{dlgStep++;renderDialogue();};
+    actions.appendChild(btn);
+  } else {
+    const btn=document.createElement('button');
+    btn.className='btn btn-green';
+    btn.textContent='⚔️ START MISSION';
+    btn.onclick=()=>{ if(dlgCallback) dlgCallback(); };
+    actions.appendChild(btn);
+  }
+}
+
+// ── QUIZ ──
+function startQuiz(mission){
+  showScreen('quiz');
+  G.currentQ=0;
+  document.getElementById('quiz-zone-title').textContent=mission.name;
+  renderQuestion(mission);
+}
+
+function renderQuestion(mission){
+  const qs=mission.questions;
+  if(G.currentQ>=qs.length){
+    if(mission.type==='quiz+puzzle'){
+      startPuzzle(mission);
+    } else {
+      completeMission(mission);
+    }
+    return;
+  }
+  const q=qs[G.currentQ];
+  document.getElementById('quiz-prog-info').textContent=`QUESTION ${G.currentQ+1} OF ${qs.length}`;
+  document.getElementById('q-type').textContent=q.type;
+  document.getElementById('q-text').innerHTML=q.q;
+  document.getElementById('feedback-panel').className='feedback-panel';
+  const grid=document.getElementById('answer-grid');
+  grid.innerHTML='';
+  const labels=['A','B','C','D'];
+  q.opts.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='answer-btn';
+    btn.innerHTML=`<span class="ans-key">${labels[i]}</span>${opt}`;
+    btn.onclick=()=>selectAnswer(i,q,mission,btn);
+    grid.appendChild(btn);
+  });
+  startTimer(mission);
+  updateProgress();
+}
+
+let timerInterval=null, timeLeft=30;
+function startTimer(mission){
+  clearInterval(timerInterval);
+  timeLeft=30;
+  const wrap=document.getElementById('timer-wrap');
+  const fill=document.getElementById('timer-fill');
+  const num=document.getElementById('timer-num');
+  wrap.style.display='block';
+  fill.style.width='100%';
+  num.textContent=30;
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    fill.style.width=(timeLeft/30*100)+'%';
+    num.textContent=timeLeft;
+    if(timeLeft<=0){
+      clearInterval(timerInterval);
+      timeExpired(mission);
+    }
+  },1000);
+}
+
+function timeExpired(mission){
+  const q=mission.questions[G.currentQ];
+  document.querySelectorAll('.answer-btn').forEach((b,i)=>{
+    b.classList.add('locked');
+    if(i===q.correct) b.classList.add('correct');
+  });
+  showFeedback(false,'⏱ TIME\'S UP! '+q.exp);
+  damagePlayer(10);
+  G.combo=0;
+  setTimeout(()=>{G.currentQ++;renderQuestion(mission);},2500);
+}
+
+function selectAnswer(idx, q, mission, btn){
+  if(btn.classList.contains('locked'))return;
+  clearInterval(timerInterval);
+  document.querySelectorAll('.answer-btn').forEach(b=>b.classList.add('locked'));
+  const correct=idx===q.correct;
+  if(correct){
+    btn.classList.add('correct');
+    G.combo++;
+    G.maxCombo=Math.max(G.maxCombo,G.combo);
+    G.correctCount++;
+    const pts=100+(G.combo>1?(G.combo-1)*25:0)+(timeLeft*2);
+    G.score+=pts;
+    addXP(pts);
+    spawnXP('+'+pts);
+    showFeedback(true,'✅ CORRECT! '+q.exp);
+    document.getElementById('screen-quiz').classList.add('flash-good');
+    setTimeout(()=>document.getElementById('screen-quiz').classList.remove('flash-good'),400);
+    if(G.combo===4) earnTrophy('combo_king');
+    if(timeLeft>=25) {
+      // speed achievement tracked separately
+      G.speedCount=(G.speedCount||0)+1;
+      if(G.speedCount>=3) earnTrophy('speed_run');
+    }
+    if(G.trophiesEarned.length===0) earnTrophy('first_blood');
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.answer-btn')[q.correct].classList.add('correct');
+    G.combo=0;
+    if(!G.shieldActive){
+      damagePlayer(20);
+    } else {
+      G.shieldActive=false;
+      showNotif('🛡️ FIREWALL SHIELD blocked the damage!');
+    }
+    showFeedback(false,'❌ INCORRECT. '+q.exp);
+    document.getElementById('screen-quiz').classList.add('flash-bad');
+    setTimeout(()=>document.getElementById('screen-quiz').classList.remove('flash-bad'),400);
+  }
+  updateHUD();
+  setTimeout(()=>{G.currentQ++;renderQuestion(mission);},2800);
+}
+
+function showFeedback(good,text){
+  const fp=document.getElementById('feedback-panel');
+  fp.className='feedback-panel '+(good?'good':'bad')+' show';
+  fp.innerHTML=text;
+}
+
+// ── PUZZLE ──
+function startPuzzle(mission){
+  showScreen('puzzle');
+  const p=mission.puzzle;
+  const wrap=document.getElementById('puzzle-inner');
+  if(p.type==='password'){
+    wrap.innerHTML=buildPasswordPuzzle();
+    setupPasswordPuzzle();
+  } else if(p.type==='email-sort'){
+    wrap.innerHTML=buildEmailSort();
+    setupEmailSort();
+  }
+}
+
+function buildPasswordPuzzle(){
+  return `
+    <div class="puzzle-title">🔐 PUZZLE CHALLENGE: BUILD THE PERFECT PASSWORD</div>
+    <div class="puzzle-desc">Type a password in the field below. Meet all 5 security rules to unlock the zone. Your password must score "STRONG" to proceed!</div>
+    <div class="password-game">
+      <div class="pw-input-wrap">
+        <input class="pw-input" id="pw-field" placeholder="Type your password here..." oninput="checkPassword(this.value)" autocomplete="off" spellcheck="false">
+      </div>
+      <div style="display:flex;align-items:center;gap:0.8rem">
+        <div class="strength-meter" id="strength-meter">
+          <div class="strength-block" id="sb0"></div>
+          <div class="strength-block" id="sb1"></div>
+          <div class="strength-block" id="sb2"></div>
+          <div class="strength-block" id="sb3"></div>
+          <div class="strength-block" id="sb4"></div>
+        </div>
+        <div class="strength-label" id="strength-label">ENTER PASSWORD</div>
+      </div>
+      <div class="pw-rules">
+        <div class="pw-rule" id="rule-len"><span class="pw-rule-icon">⚔️</span> 12+ characters</div>
+        <div class="pw-rule" id="rule-upper"><span class="pw-rule-icon">🔡</span> Uppercase letter (A-Z)</div>
+        <div class="pw-rule" id="rule-lower"><span class="pw-rule-icon">🔤</span> Lowercase letter (a-z)</div>
+        <div class="pw-rule" id="rule-num"><span class="pw-rule-icon">🔢</span> Number (0-9)</div>
+        <div class="pw-rule" id="rule-sym"><span class="pw-rule-icon">✳️</span> Special character (!@#$%)</div>
+      </div>
+      <div id="pw-complete-msg" style="display:none">
+        <div style="background:rgba(0,255,136,0.08);border:1px solid var(--green);border-radius:8px;padding:1rem;color:var(--green);font-size:0.85rem;line-height:1.6;">
+          ✅ <strong>EXCELLENT PASSWORD!</strong> Your password meets all security requirements. Zone unlocked!
+        </div>
+        <button class="btn btn-green" style="margin-top:1rem" onclick="completePuzzle()">ZONE CLEARED — CONTINUE ▶</button>
+      </div>
+    </div>`;
+}
+
+function checkPassword(val){
+  const rules={
+    len: val.length>=12,
+    upper: /[A-Z]/.test(val),
+    lower: /[a-z]/.test(val),
+    num: /[0-9]/.test(val),
+    sym: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val)
+  };
+  Object.entries(rules).forEach(([k,v])=>{
+    const el=document.getElementById('rule-'+k);
+    if(el){ el.className='pw-rule '+(v?'pass':'fail'); el.querySelector('.pw-rule-icon').textContent=v?'✅':'❌'; }
+  });
+  const score=Object.values(rules).filter(Boolean).length;
+  const colors=['','var(--red)','var(--orange)','var(--yellow)','var(--cyan)','var(--green)'];
+  const labels=['','VERY WEAK','WEAK','FAIR','STRONG','VERY STRONG'];
+  for(let i=0;i<5;i++){
+    const b=document.getElementById('sb'+i);
+    if(b) b.style.background=i<score?colors[score]:'var(--border)';
+  }
+  const lbl=document.getElementById('strength-label');
+  if(lbl){ lbl.textContent=val.length===0?'ENTER PASSWORD':labels[score]; lbl.style.color=colors[score]||'var(--muted)'; }
+  const msg=document.getElementById('pw-complete-msg');
+  if(msg) msg.style.display=score===5?'block':'none';
+}
+function setupPasswordPuzzle(){}
+
+// Email Sort
+const EMAILS=[
+  {id:'e1',from:'payroll@cornpany.com',subject:'URGENT: Bank Update Required',body:'Click here to update your bank account or salary will be delayed.',phishing:true},
+  {id:'e2',from:'it-helpdesk@cyberco rp.com',subject:'Your password expires in 24hrs',body:'Click link to avoid account lockout. Act now!',phishing:true},
+  {id:'e3',from:'newsletter@medium.com',subject:'Your weekly digest is ready',body:'Click to read this week\'s top stories from authors you follow.',phishing:false},
+  {id:'e4',from:'noreply@github.com',subject:'[GitHub] Security alert for your repository',body:'A new sign-in was detected. Review recent activity.',phishing:false},
+  {id:'e5',from:'ceo-invoice@gmail.com',subject:'Urgent wire transfer needed TODAY',body:'Please process $22,000 to this account immediately. Don\'t call me I\'m in a meeting.',phishing:true},
+  {id:'e6',from:'support@linkedin.com',subject:'You have 3 new connection requests',body:'See who wants to connect with you on LinkedIn.',phishing:false},
+];
+
+function buildEmailSort(){
+  let pool=`<div class="pool-title">📨 EMAILS TO SORT</div>`;
+  EMAILS.forEach(e=>{
+    pool+=`<div class="email-card" draggable="true" id="${e.id}" data-phishing="${e.phishing}">
+      <div class="from">From: ${e.from}</div>
+      <div class="subject">${e.subject}</div>
+      <div class="body">${e.body}</div>
+    </div>`;
+  });
+  return `
+    <div class="puzzle-title">📧 PUZZLE CHALLENGE: PHISHING INBOX SORT</div>
+    <div class="puzzle-desc">Drag emails into the correct category — Legitimate or Phishing. Sort all 6 correctly to clear this zone!</div>
+    <div class="email-sort">
+      <div class="email-pool" id="email-pool">${pool}</div>
+      <div class="email-drop-zones">
+        <div class="drop-zone dz-legit" id="dz-legit" ondragover="dzOver(event,this)" ondrop="dzDrop(event,this,'legit')" ondragleave="dzLeave(this)">
+          <div class="drop-zone-title">✅ LEGITIMATE</div>
+        </div>
+        <div class="drop-zone dz-phish" id="dz-phish" ondragover="dzOver(event,this)" ondrop="dzDrop(event,this,'phish')" ondragleave="dzLeave(this)">
+          <div class="drop-zone-title">🎣 PHISHING</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.8rem;align-items:center;margin-top:1rem;flex-wrap:wrap">
+      <button class="btn btn-cyan" onclick="checkEmailSort()">CHECK MY SORT</button>
+      <div id="sort-score" style="font-family:var(--mono);font-size:0.78rem;color:var(--muted);">Sort all 6 emails to continue</div>
+    </div>
+    <div id="sort-feedback" style="display:none;margin-top:0.8rem;border-radius:8px;padding:0.9rem 1.2rem;font-size:0.82rem;line-height:1.6;"></div>`;
+}
+
+function setupEmailSort(){
+  setTimeout(()=>{
+    document.querySelectorAll('.email-card').forEach(card=>{
+      card.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text',card.id); card.classList.add('dragging'); });
+      card.addEventListener('dragend',()=>card.classList.remove('dragging'));
+    });
+  },100);
+}
+
+function dzOver(e,zone){ e.preventDefault(); zone.classList.add('drag-over'); }
+function dzLeave(zone){ zone.classList.remove('drag-over'); }
+function dzDrop(e,zone,type){
+  e.preventDefault();
+  zone.classList.remove('drag-over');
+  const id=e.dataTransfer.getData('text');
+  const card=document.getElementById(id);
+  if(card) zone.appendChild(card);
+  updateSortScore();
+}
+
+function updateSortScore(){
+  const legitCards=document.getElementById('dz-legit').querySelectorAll('.email-card');
+  const phishCards=document.getElementById('dz-phish').querySelectorAll('.email-card');
+  const total=legitCards.length+phishCards.length;
+  document.getElementById('sort-score').textContent=`${total}/6 emails sorted`;
+}
+
+function checkEmailSort(){
+  const legitCards=[...document.getElementById('dz-legit').querySelectorAll('.email-card')];
+  const phishCards=[...document.getElementById('dz-phish').querySelectorAll('.email-card')];
+  let correct=0, total=EMAILS.length;
+  legitCards.forEach(c=>{ const ok=c.getAttribute('data-phishing')==='false'; c.classList.toggle('correct-place',ok); c.classList.toggle('wrong-place',!ok); if(ok)correct++; });
+  phishCards.forEach(c=>{ const ok=c.getAttribute('data-phishing')==='true'; c.classList.toggle('correct-place',ok); c.classList.toggle('wrong-place',!ok); if(ok)correct++; });
+  const fb=document.getElementById('sort-feedback');
+  fb.style.display='block';
+  const unsorted=document.getElementById('email-pool').querySelectorAll('.email-card').length;
+  if(unsorted>0){
+    fb.style.cssText='display:block;background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.3);border-radius:8px;padding:0.9rem 1.2rem;color:var(--yellow);';
+    fb.innerHTML=`⚠️ You still have <strong>${unsorted} email(s)</strong> unsorted. Drag all emails to a category first!`;
+    return;
+  }
+  if(correct===total){
+    G.score+=200; addXP(200); updateHUD(); spawnXP('+200');
+    fb.style.cssText='display:block;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.3);border-radius:8px;padding:0.9rem 1.2rem;color:var(--green);';
+    fb.innerHTML=`✅ <strong>PERFECT SORT! ${correct}/${total} correct.</strong> You correctly identified all phishing and legitimate emails! Key clues: misspelled domains, urgency + financial requests, generic email providers for "executives".`;
+    setTimeout(()=>completePuzzle(),2000);
+  } else {
+    fb.style.cssText='display:block;background:rgba(255,51,85,0.08);border:1px solid rgba(255,51,85,0.3);border-radius:8px;padding:0.9rem 1.2rem;color:#ff9aaa;';
+    fb.innerHTML=`❌ <strong>${correct}/${total} correct.</strong> Red items are wrong. Hint: Check for misspelled domains (cornpany vs company), suspicious sender domains, and unsolicited requests for money/credentials.`;
+  }
+}
+
+function completePuzzle(){
+  const m=MISSIONS[G.currentMission];
+  completeMission(m);
+}
+
+// ── MISSION COMPLETE ──
+function completeMission(mission){
+  clearInterval(timerInterval);
+  const correct=G.correctCount;
+  const total=mission.questions.length+(mission.puzzle?1:0);
+  const pct=Math.round(correct/mission.questions.length*100);
+  const stars=pct===100?3:pct>=75?2:1;
+  G.score+=mission.complete.xp;
+  addXP(mission.complete.xp);
+  G.completedMissions.push(mission.id);
+  earnTrophy(mission.complete.trophy);
+  if(G.hp===100) earnTrophy('no_damage');
+  if(pct===100) earnTrophy('perfect');
+  // unlock next
+  const nextId=mission.id+1;
+  const nextNode=document.getElementById('node-'+nextId);
+  if(nextNode&&nextNode.classList.contains('locked')){
+    nextNode.classList.remove('locked');
+    nextNode.classList.add('unlocked');
+    const badge=nextNode.querySelector('.node-badge');
+    if(badge){ badge.className='node-badge badge-new'; badge.textContent='NEW!'; }
+    if(nextNode.onclick===null) nextNode.setAttribute('onclick','startMission('+nextId+')');
+    nextNode.onclick=()=>startMission(nextId);
+  }
+  // update node stars
+  const nodeStars=document.getElementById('stars-'+mission.id);
+  if(nodeStars){
+    const s=nodeStars.querySelectorAll('.node-star');
+    s.forEach((st,i)=>{ if(i<stars) st.style.opacity='1'; });
+  }
+  const completed=document.querySelector('#node-'+mission.id);
+  if(completed){ completed.classList.add('completed'); const b=completed.querySelector('.node-badge'); if(b){b.className='node-badge badge-done';b.textContent='DONE';} }
+  // show level complete
+  showScreen('level-complete');
+  document.getElementById('lc-icon').textContent=mission.complete.icon;
+  document.getElementById('lc-level-name').textContent=mission.name+' CLEARED!';
+  document.getElementById('lc-correct').textContent=correct+'/'+mission.questions.length;
+  document.getElementById('lc-time').textContent=Math.round((30-timeLeft)||12)+'s';
+  document.getElementById('lc-combo').textContent='x'+G.maxCombo;
+  document.getElementById('lc-xp').textContent='+'+mission.complete.xp+' XP';
+  document.getElementById('lc-hint').textContent=mission.complete.hint;
+  const lcStars=document.querySelectorAll('.lc-star');
+  lcStars.forEach(s=>s.className='lc-star');
+  for(let i=0;i<stars;i++){
+    setTimeout(()=>{ lcStars[i].classList.add('lit'); },i*300+200);
+  }
+  updateHUD();
+  updateProgress();
+}
+
+function goNextMission(){
+  const next=G.currentMission+1;
+  if(next<=5) startMission(next);
+  else showScreen('map');
+}
+
+// ── BOSS BATTLE ──
+function startBoss(){
+  G.bossHP=100; G.bossPlayerHP=100; G.bossQ=0; G.bossCorrect=0;
+  showScreen('boss');
+  renderBossMoves();
+  updateBossHUD();
+}
+
+function renderBossMoves(){
+  const q=BOSS_QUESTIONS[G.bossQ];
+  if(!q){ bossDefeated(); return; }
+  document.getElementById('boss-attack-text').innerHTML=`<span class="attack-name">☠ ${q.name}</span>${q.desc}`;
+  const movesDiv=document.getElementById('boss-moves');
+  movesDiv.innerHTML='';
+  q.opts.forEach((opt,i)=>{
+    const btn=document.createElement('div');
+    btn.className='boss-move';
+    btn.innerHTML=`<div class="move-name">RESPONSE ${String.fromCharCode(65+i)}</div><div class="move-desc">${opt}</div><div class="move-power">⚡ ${i===q.correct?'CRITICAL HIT':'COUNTER'}</div>`;
+    btn.onclick=()=>bossAnswer(i,q,btn);
+    movesDiv.appendChild(btn);
+  });
+}
+
+function bossAnswer(idx,q,btn){
+  document.querySelectorAll('.boss-move').forEach(b=>b.classList.add('used'));
+  const correct=idx===q.correct;
+  const log=document.getElementById('boss-log');
+  if(correct){
+    G.bossHP=Math.max(0,G.bossHP-q.dmg);
+    G.bossCorrect++;
+    G.score+=150; addXP(150); spawnXP('+150');
+    log.innerHTML+=`<br><span class="log-good">▶ CRITICAL HIT! Dark Byte takes ${q.dmg} damage! (HP: ${G.bossHP})</span>`;
+    document.getElementById('boss-sprite').style.animation='none';
+    setTimeout(()=>document.getElementById('boss-sprite').style.animation='',500);
+    showNotif('💥 CRITICAL HIT! -'+q.dmg+' to Dark Byte','success');
+  } else {
+    G.bossPlayerHP=Math.max(0,G.bossPlayerHP-20);
+    log.innerHTML+=`<br><span class="log-bad">☠ Dark Byte attacks! You take 20 damage! (HP: ${G.bossPlayerHP})</span>`;
+    showNotif('💔 Dark Byte hit you! -20 HP','danger');
+    if(G.bossPlayerHP<=0){ bossDefeat(); return; }
+  }
+  log.scrollTop=log.scrollHeight;
+  updateBossHUD();
+  G.bossQ++;
+  if(G.bossHP<=0){ bossDefeated(); return; }
+  if(G.bossQ>=BOSS_QUESTIONS.length){ bossDefeated(); return; }
+  setTimeout(renderBossMoves, 1500);
+}
+
+function updateBossHUD(){
+  document.getElementById('boss-hp-num').textContent=G.bossHP;
+  document.getElementById('boss-hp-fill').style.width=G.bossHP+'%';
+  document.getElementById('boss-php-num').textContent=G.bossPlayerHP;
+  document.getElementById('boss-player-hp').style.width=G.bossPlayerHP+'%';
+}
+
+function bossDefeated(){
+  G.score+=500; addXP(500); updateHUD(); spawnXP('+500 BOSS DEFEATED!');
+  earnTrophy('boss_slayer');
+  earnTrophy('cyber_cert');
+  G.completedMissions.push(5);
+  const n5=document.getElementById('node-5');
+  if(n5){n5.classList.add('completed');const b=n5.querySelector('.node-badge');if(b){b.className='node-badge badge-done';b.textContent='DONE';}}
+  showNotif('🎉 DARK BYTE DEFEATED! Mission Complete!','success');
+  // Build trophies
+  buildTrophyGrid();
+  document.getElementById('final-cert').style.display='block';
+  document.getElementById('fc-score').textContent=G.score;
+  document.getElementById('fc-xp').textContent=G.xp;
+  document.getElementById('fc-trophies').textContent=G.trophiesEarned.length;
+  setTimeout(()=>showScreen('trophy'),2000);
+}
+
+function bossDefeat(){
+  G.lives=Math.max(0,G.lives-1);
+  updateHUD();
+  if(G.lives<=0){
+    showNotif('💀 GAME OVER — Restarting Boss Battle','danger');
+    setTimeout(startBoss,2000);
+  } else {
+    showNotif('💀 Defeated! Retrying boss battle...','danger');
+    setTimeout(startBoss,2000);
+  }
+}
+
+// ── ITEMS ──
+function useItem(slot){
+  if(slot===0&&G.items.shield>0){
+    G.items.shield--;
+    G.shieldActive=true;
+    document.getElementById('inv-0-c').textContent=G.items.shield;
+    if(G.items.shield===0) document.getElementById('inv-0').classList.add('empty');
+    showNotif('🛡️ Firewall Shield ACTIVE — next wrong answer blocked!','success');
+    earnTrophy('item_user');
+  } else if(slot===1&&G.items.time>0){
+    G.items.time--;
+    timeLeft=Math.min(30,timeLeft+15);
+    document.getElementById('inv-1-c').textContent=G.items.time;
+    if(G.items.time===0) document.getElementById('inv-1').classList.add('empty');
+    showNotif('⚡ TIME BOOST — +15 seconds added!','success');
+  } else if(slot===2&&G.items.hp>0){
+    G.items.hp--;
+    G.hp=Math.min(100,G.hp+25);
+    document.getElementById('inv-2-c').textContent=G.items.hp;
+    if(G.items.hp===0) document.getElementById('inv-2').classList.add('empty');
+    updateHUD();
+    showNotif('💊 HP RESTORED — +25 health!','success');
+  }
+}
+
+// ── DAMAGE / HEALTH ──
+function damagePlayer(amt){
+  G.hp=Math.max(0,G.hp-amt);
+  if(G.hp<=0){
+    G.lives=Math.max(0,G.lives-1);
+    G.hp=G.lives>0?50:0;
+    updateHUD();
+    if(G.lives<=0){ showNotif('💀 Out of lives! Game over...','danger'); }
+    else { showNotif('💔 Lost a life! '+G.lives+' remaining','danger'); }
+  }
+  updateHUD();
+}
+
+// ── HUD UPDATE ──
+function updateHUD(){
+  document.getElementById('hud-score').textContent=G.score.toLocaleString();
+  document.getElementById('hud-xp').textContent=G.xp.toLocaleString();
+  document.getElementById('hp-fill').style.width=G.hp+'%';
+  const hearts=document.querySelectorAll('.life-heart');
+  hearts.forEach((h,i)=>{ h.className='life-heart'+(i>=G.lives?' lost':''); });
+}
+
+function addXP(n){ G.xp+=n; updateHUD(); }
+
+function updateProgress(){
+  const total=5;
+  const done=G.completedMissions.filter((v,i,a)=>a.indexOf(v)===i).length;
+  document.getElementById('prog-glow').style.width=(done/total*100)+'%';
+}
+
+// ── XP POPUP ──
+function spawnXP(text){
+  const el=document.createElement('div');
+  el.className='xp-popup';
+  el.textContent=text;
+  el.style.cssText=`top:${80+Math.random()*40}px;left:${window.innerWidth/2-60+Math.random()*80}px;`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1600);
+}
+
+// ── NOTIFICATION ──
+function showNotif(msg,type=''){
+  const el=document.createElement('div');
+  el.className='notification '+(type||'');
+  el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.style.opacity='0',2000);
+  setTimeout(()=>el.remove(),2400);
+}
+
+// ── TROPHIES ──
+function buildTrophyGrid(){
+  const grid=document.getElementById('trophy-grid');
+  grid.innerHTML='';
+  TROPHIES.forEach(t=>{
+    const card=document.createElement('div');
+    card.className='trophy-card '+(t.locked?'locked-t':'earned');
+    card.innerHTML=`<div class="trophy-icon-big">${t.icon}</div><div class="trophy-name">${t.name}</div><div class="trophy-desc">${t.desc}</div>`;
+    grid.appendChild(card);
+  });
+}
+
+function showTrophyFinal(){
+  const done=G.completedMissions.length>=5;
+  document.getElementById('final-cert').style.display='block';
+  document.getElementById('fc-score').textContent=G.score.toLocaleString();
+  document.getElementById('fc-xp').textContent=G.xp.toLocaleString();
+  document.getElementById('fc-trophies').textContent=G.trophiesEarned.length;
+  buildTrophyGrid();
+}
+
+// Fix node click handlers post-unlock
+document.querySelectorAll('.map-node').forEach((n,i)=>{
+  if(!n.classList.contains('locked')) n.onclick=()=>startMission(i+1);
+});
+</script>
+</body>
+</html>
