@@ -1030,11 +1030,11 @@ body::after {
           <div class="final-stat"><div class="final-stat-num" id="fc-xp">0</div><div class="final-stat-label">XP EARNED</div></div>
           <div class="final-stat"><div class="final-stat-num" id="fc-trophies">0</div><div class="final-stat-label">TROPHIES</div></div>
         </div>
-        <div style="font-family:var(--pixel);font-size:0.38rem;color:var(--cyan);letter-spacing:0.1em;margin-top:0.8rem;">DATA SECURITY AWARENESS · 2026</div>
+        <div style="font-family:var(--pixel);font-size:0.38rem;color:var(--cyan);letter-spacing:0.1em;margin-top:0.8rem;">DATA SECURITY AWARENESS</div>
       </div>
       <div style="margin-top:1.5rem;display:flex;gap:0.8rem;justify-content:center;flex-wrap:wrap">
         <button class="btn btn-cyan" onclick="showScreen('map')">🗺 WORLD MAP</button>
-        <button class="btn btn-yellow" onclick="showTrophyFinal()">🏆 SHOW CERTIFICATE</button>
+        <button class="btn btn-yellow" onclick="showTrophyFinal();downloadCertificate();">🏆 SHOW CERTIFICATE</button>
       </div>
     </div>
   </div>
@@ -1773,6 +1773,632 @@ function showTrophyFinal(){
 document.querySelectorAll('.map-node').forEach((n,i)=>{
   if(!n.classList.contains('locked')) n.onclick=()=>startMission(i+1);
 });
+
+// ══════════════════════════════════════════════
+// SOUND ENGINE — Web Audio API (no external deps)
+// ══════════════════════════════════════════════
+const SFX = (() => {
+  let ctx = null;
+  const getCtx = () => {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  };
+
+  // Core tone builder
+  const play = (cfg) => {
+    try {
+      const ac = getCtx();
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      const now = ac.currentTime;
+
+      osc.type = cfg.type || 'square';
+      osc.frequency.setValueAtTime(cfg.freq || 440, now);
+      if (cfg.freqEnd !== undefined) osc.frequency.linearRampToValueAtTime(cfg.freqEnd, now + (cfg.dur || 0.1));
+
+      gain.gain.setValueAtTime(cfg.vol || 0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + (cfg.dur || 0.15));
+
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now);
+      osc.stop(now + (cfg.dur || 0.15));
+    } catch(e) {}
+  };
+
+  // Multi-note sequence helper
+  const seq = (notes, gap = 0) => {
+    try {
+      const ac = getCtx();
+      let t = ac.currentTime;
+      notes.forEach(n => {
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.type = n.type || 'square';
+        osc.frequency.setValueAtTime(n.f, t);
+        if (n.fe) osc.frequency.linearRampToValueAtTime(n.fe, t + n.d);
+        gain.gain.setValueAtTime(n.v || 0.18, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + n.d);
+        osc.connect(gain);
+        gain.connect(ac.destination);
+        osc.start(t);
+        osc.stop(t + n.d);
+        t += n.d + (gap || 0);
+      });
+    } catch(e) {}
+  };
+
+  // Noise burst (for explosions/damage)
+  const noise = (dur = 0.12, vol = 0.12) => {
+    try {
+      const ac = getCtx();
+      const buf = ac.createBuffer(1, ac.sampleRate * dur, ac.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource();
+      const gain = ac.createGain();
+      const filter = ac.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 1200;
+      src.buffer = buf;
+      gain.gain.setValueAtTime(vol, ac.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
+      src.connect(filter); filter.connect(gain); gain.connect(ac.destination);
+      src.start();
+    } catch(e) {}
+  };
+
+  return {
+    // ── UI / Navigation ──
+    click() {        // generic button click — short digital blip
+      play({ type:'square', freq:660, freqEnd:880, dur:0.06, vol:0.12 });
+    },
+    navigate() {     // screen transition — whoosh-up
+      seq([
+        { f:220, fe:440, d:0.05, v:0.1, type:'sawtooth' },
+        { f:440, fe:880, d:0.08, v:0.12, type:'sawtooth' }
+      ], 0.01);
+    },
+    mapNode() {      // world map node select — cyber ping
+      seq([
+        { f:880, d:0.04, v:0.14, type:'square' },
+        { f:1100, d:0.07, v:0.12, type:'square' }
+      ], 0.02);
+    },
+    startGame() {    // start mission — retro coin + synth fanfare
+      try {
+        const ac = getCtx();
+        const now = ac.currentTime;
+
+        // Coin insert "bling" — two quick sine pings
+        [[1400, 0], [1800, 0.07]].forEach(([freq, delay]) => {
+          const o = ac.createOscillator();
+          const g = ac.createGain();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(freq, now + delay);
+          o.frequency.exponentialRampToValueAtTime(freq * 1.15, now + delay + 0.06);
+          g.gain.setValueAtTime(0.28, now + delay);
+          g.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.18);
+          o.connect(g); g.connect(ac.destination);
+          o.start(now + delay); o.stop(now + delay + 0.2);
+        });
+
+        // Rising arpeggio — classic game-start feel
+        const arp = [261, 329, 392, 523, 659, 784, 1047];
+        arp.forEach((f, i) => {
+          const o = ac.createOscillator();
+          const g = ac.createGain();
+          const t = now + 0.22 + i * 0.07;
+          o.type = 'square';
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0.15, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+          o.connect(g); g.connect(ac.destination);
+          o.start(t); o.stop(t + 0.14);
+        });
+
+        // Final triumphant chord sustain
+        [523, 659, 784].forEach((f) => {
+          const o = ac.createOscillator();
+          const g = ac.createGain();
+          const t = now + 0.22 + arp.length * 0.07;
+          o.type = 'sine';
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0.14, t);
+          g.gain.setValueAtTime(0.12, t + 0.15);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+          o.connect(g); g.connect(ac.destination);
+          o.start(t); o.stop(t + 0.6);
+        });
+      } catch(e) {}
+    },
+    dialogue() {     // next dialogue — typewriter tick
+      play({ type:'square', freq:1200, dur:0.04, vol:0.08 });
+    },
+
+    // ── Quiz answers ──
+    answerCorrect() { // correct — ascending chime
+      seq([
+        { f:523, d:0.07, v:0.16, type:'sine' },
+        { f:659, d:0.07, v:0.16, type:'sine' },
+        { f:784, d:0.12, v:0.18, type:'sine' }
+      ], 0.03);
+    },
+    answerWrong() {   // wrong — harsh descending buzz
+      seq([
+        { f:320, fe:180, d:0.08, v:0.2, type:'sawtooth' },
+        { f:200, fe:100, d:0.12, v:0.15, type:'sawtooth' }
+      ], 0.02);
+      noise(0.08, 0.08);
+    },
+    nextQuestion() {  // advance to next Q — quick tick
+      play({ type:'square', freq:440, freqEnd:550, dur:0.05, vol:0.1 });
+    },
+
+    // ── Items ──
+    itemUse() {      // use inventory item — power-up sparkle
+      seq([
+        { f:784, d:0.04, v:0.14, type:'sine' },
+        { f:1047, d:0.04, v:0.14, type:'sine' },
+        { f:1319, d:0.08, v:0.16, type:'sine' }
+      ], 0.03);
+    },
+
+    // ── Boss battle ──
+    bossHit() {      // critical hit on boss — heavy impact
+      seq([
+        { f:150, fe:60, d:0.1, v:0.25, type:'sawtooth' },
+        { f:880, fe:440, d:0.08, v:0.2, type:'square' }
+      ], 0);
+      noise(0.1, 0.15);
+    },
+    bossAttack() {   // boss hits player — low threatening pulse
+      seq([
+        { f:80, fe:40, d:0.15, v:0.28, type:'sawtooth' },
+        { f:60, d:0.1, v:0.2, type:'sawtooth' }
+      ], 0.05);
+      noise(0.12, 0.2);
+    },
+    bossMove() {     // selecting boss move — digital select
+      play({ type:'square', freq:550, freqEnd:700, dur:0.07, vol:0.12 });
+    },
+
+    // ── Puzzles ──
+    drag() {         // drag email card — soft swoosh
+      play({ type:'sine', freq:300, freqEnd:500, dur:0.08, vol:0.08 });
+    },
+    drop() {         // drop card — thud
+      play({ type:'triangle', freq:200, freqEnd:80, dur:0.12, vol:0.14 });
+    },
+    pwType() {       // password typing — subtle click
+      const f = 800 + Math.random() * 400;
+      play({ type:'square', freq:f, dur:0.03, vol:0.06 });
+    },
+    pwStrong() {     // password meets rule — rule pass ping
+      play({ type:'sine', freq:1047, dur:0.08, vol:0.12 });
+    },
+
+    // ── Level complete ──
+    levelComplete() { // mission cleared — victory fanfare
+      seq([
+        { f:523, d:0.1, v:0.18, type:'sine' },
+        { f:659, d:0.1, v:0.18, type:'sine' },
+        { f:784, d:0.1, v:0.18, type:'sine' },
+        { f:1047, d:0.25, v:0.22, type:'sine' }
+      ], 0.02);
+    },
+    starEarn() {     // star earned — twinkle pop
+      play({ type:'sine', freq:1319, freqEnd:1760, dur:0.12, vol:0.14 });
+    },
+
+    // ── VICTORY — Trophy/End Screen ──
+    victory() {
+      // Triumphant 8-bit victory fanfare
+      const notes = [
+        { f:392, d:0.08, v:0.2, type:'square' },
+        { f:392, d:0.08, v:0.2, type:'square' },
+        { f:392, d:0.08, v:0.2, type:'square' },
+        { f:311, d:0.12, v:0.2, type:'square' },
+        { f:466, d:0.06, v:0.18, type:'square' },
+        { f:392, d:0.15, v:0.22, type:'square' },
+        { f:311, d:0.12, v:0.2, type:'square' },
+        { f:466, d:0.06, v:0.18, type:'square' },
+        { f:392, d:0.3, v:0.22, type:'square' },
+        // bridge — higher octave flourish
+        { f:587, d:0.08, v:0.18, type:'sine' },
+        { f:587, d:0.08, v:0.18, type:'sine' },
+        { f:587, d:0.08, v:0.18, type:'sine' },
+        { f:622, d:0.12, v:0.18, type:'sine' },
+        { f:466, d:0.06, v:0.16, type:'sine' },
+        { f:370, d:0.12, v:0.16, type:'sine' },
+        { f:311, d:0.06, v:0.15, type:'sine' },
+        { f:262, d:0.06, v:0.15, type:'sine' },
+        // final swell
+        { f:523, d:0.1, v:0.22, type:'square' },
+        { f:659, d:0.1, v:0.22, type:'square' },
+        { f:784, d:0.1, v:0.22, type:'square' },
+        { f:1047, d:0.5, v:0.25, type:'square' }
+      ];
+      seq(notes, 0.01);
+      // harmonic layer
+      setTimeout(() => {
+        seq([
+          { f:196, d:0.3, v:0.1, type:'sawtooth' },
+          { f:233, d:0.3, v:0.1, type:'sawtooth' },
+          { f:196, d:0.5, v:0.12, type:'sawtooth' }
+        ], 0.4);
+      }, 800);
+    },
+
+    // ── Misc ──
+    trophy() {       // trophy earned — sparkle sweep
+      seq([
+        { f:1047, d:0.06, v:0.15, type:'sine' },
+        { f:1319, d:0.06, v:0.15, type:'sine' },
+        { f:1568, d:0.06, v:0.15, type:'sine' },
+        { f:2093, d:0.15, v:0.18, type:'sine' }
+      ], 0.04);
+    },
+    locked() {       // try locked node — error buzz
+      play({ type:'square', freq:160, freqEnd:120, dur:0.15, vol:0.15 });
+    },
+  };
+})();
+
+// ══════════════════════════════════════════════
+// WIRE SOUNDS TO GAME EVENTS
+// ══════════════════════════════════════════════
+
+// ── Patch showScreen to play navigation sounds ──
+const _origShowScreen = showScreen;
+showScreen = function(id) {
+  if (id === 'trophy') {
+    _origShowScreen(id);
+    setTimeout(() => SFX.victory(), 300);
+  } else if (id === 'map') {
+    SFX.navigate();
+    _origShowScreen(id);
+  } else if (id === 'level-complete') {
+    _origShowScreen(id);
+    setTimeout(() => SFX.levelComplete(), 200);
+  } else if (id === 'boss') {
+    SFX.navigate();
+    _origShowScreen(id);
+  } else {
+    SFX.navigate();
+    _origShowScreen(id);
+  }
+};
+
+// ── Patch startGame ──
+const _origStartGame = startGame;
+startGame = function() {
+  SFX.startGame();
+  _origStartGame();
+};
+
+// ── Patch startMission ──
+const _origStartMission = startMission;
+startMission = function(id) {
+  SFX.mapNode();
+  _origStartMission(id);
+};
+
+// ── Patch selectAnswer (quiz answers) ──
+const _origSelectAnswer = selectAnswer;
+selectAnswer = function(idx, q, mission, btn) {
+  try {
+    if (idx === q.correct) SFX.answerCorrect();
+    else SFX.answerWrong();
+  } catch(e) { SFX.click(); }
+  _origSelectAnswer(idx, q, mission, btn);
+};
+
+// ── Patch bossAnswer ──
+const _origBossAnswer = bossAnswer;
+bossAnswer = function(idx, q, btn) {
+  if (idx === q.correct) SFX.bossHit();
+  else SFX.bossAttack();
+  _origBossAnswer(idx, q, btn);
+};
+
+// ── Patch useItem ──
+const _origUseItem = useItem;
+useItem = function(slot) {
+  const counts = [G.items.shield, G.items.time, G.items.hp];
+  if (slot < 3 && counts[slot] > 0) SFX.itemUse();
+  _origUseItem(slot);
+};
+
+// ── Patch earnTrophy ──
+const _origEarnTrophy = earnTrophy;
+earnTrophy = function(id) {
+  _origEarnTrophy(id);
+  SFX.trophy();
+};
+
+// ── Patch goNextMission ──
+const _origGoNext = goNextMission;
+goNextMission = function() {
+  SFX.click();
+  _origGoNext();
+};
+
+// ── Star animation sound ──
+const _origCompleteMission = completeMission;
+completeMission = function(mission) {
+  _origCompleteMission(mission);
+  // Stagger star sounds to match the star reveal timing
+  const correct = G.correctCount || 0;
+  const pct = mission ? Math.round(correct / mission.questions.length * 100) : 0;
+  const stars = pct === 100 ? 3 : pct >= 75 ? 2 : 1;
+  for (let i = 0; i < stars; i++) {
+    setTimeout(() => SFX.starEarn(), i * 300 + 400);
+  }
+};
+
+// ── Boss move hover sound ──
+document.addEventListener('mouseover', e => {
+  if (e.target.closest('.boss-move') && !e.target.closest('.boss-move').classList.contains('used')) {
+    // Only fire once per distinct move
+    const el = e.target.closest('.boss-move');
+    if (el._soundFired) return;
+    el._soundFired = true;
+    SFX.bossMove();
+    el.addEventListener('mouseleave', () => { el._soundFired = false; }, { once: true });
+  }
+});
+
+// ── Dialogue next button ──
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.btn');
+  if (!btn) return;
+  // Specific overrides already handled above; generic click for other buttons
+  if (!btn.onclick && !btn.getAttribute('onclick')) return;
+  const oc = btn.getAttribute('onclick') || '';
+  if (oc.includes('nextDialogue') || oc.includes('dialogue')) SFX.dialogue();
+  else if (oc.includes('showScreen') || oc.includes('startBoss') || oc.includes('goNextMission')) { /* handled by patches */ }
+  else SFX.click();
+});
+
+// ── Map nodes — locked attempt ──
+document.querySelectorAll('.map-node.locked').forEach(n => {
+  n.addEventListener('click', () => SFX.locked());
+});
+
+// ── Email drag-and-drop sounds ──
+document.addEventListener('dragstart', e => {
+  if (e.target.classList.contains('email-card')) SFX.drag();
+});
+document.addEventListener('drop', e => {
+  if (e.target.closest('.drop-zone')) SFX.drop();
+});
+
+// ── Password input sounds ──
+document.addEventListener('input', e => {
+  if (e.target.classList.contains('pw-input')) SFX.pwType();
+});
+
+// ── Answer button hover (quiz) ──
+document.addEventListener('mouseover', e => {
+  const btn = e.target.closest('.answer-btn');
+  if (btn && !btn.classList.contains('locked')) {
+    if (btn._hoverSnd) return;
+    btn._hoverSnd = true;
+    play_hover_blip();
+    btn.addEventListener('mouseleave', () => { btn._hoverSnd = false; }, { once: true });
+  }
+});
+// ── CERTIFICATE DOWNLOAD ──
+function downloadCertificate() {
+  const score = document.getElementById('fc-score').textContent || G.score;
+  const xp    = document.getElementById('fc-xp').textContent    || G.xp;
+  const trophies = document.getElementById('fc-trophies').textContent || G.trophiesEarned.length;
+
+  const canvas = document.createElement('canvas');
+  canvas.width  = 1200;
+  canvas.height = 850;
+  const ctx = canvas.getContext('2d');
+
+  // ── Background ──
+  const bg = ctx.createLinearGradient(0, 0, 1200, 850);
+  bg.addColorStop(0,   '#050a14');
+  bg.addColorStop(0.5, '#0a1628');
+  bg.addColorStop(1,   '#050a14');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, 1200, 850);
+
+  // ── Subtle grid lines ──
+  ctx.strokeStyle = 'rgba(0,245,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < 1200; x += 40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,850); ctx.stroke(); }
+  for (let y = 0; y < 850;  y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(1200,y); ctx.stroke(); }
+
+  // ── Outer border ──
+  const grad = ctx.createLinearGradient(0, 0, 1200, 0);
+  grad.addColorStop(0,    '#b84fff');
+  grad.addColorStop(0.33, '#00f5ff');
+  grad.addColorStop(0.66, '#00ff88');
+  grad.addColorStop(1,    '#ffd700');
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 5;
+  ctx.strokeRect(28, 28, 1144, 794);
+
+  // Inner border
+  ctx.strokeStyle = 'rgba(0,245,255,0.25)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(42, 42, 1116, 766);
+
+  // ── Top accent bar ──
+  const topBar = ctx.createLinearGradient(0, 0, 1200, 0);
+  topBar.addColorStop(0,    '#b84fff');
+  topBar.addColorStop(0.33, '#00f5ff');
+  topBar.addColorStop(0.66, '#00ff88');
+  topBar.addColorStop(1,    '#ffd700');
+  ctx.fillStyle = topBar;
+  ctx.fillRect(28, 28, 1144, 5);
+
+  // ── Corner decorations ──
+  [[60,60],[1140,60],[60,790],[1140,790]].forEach(([cx,cy]) => {
+    ctx.strokeStyle = '#00f5ff';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = '#00f5ff';
+    ctx.shadowBlur = 8;
+    [[0,20,0,0,20,0],[0,-20,0,0,20,0],[0,20,0,0,-20,0],[0,-20,0,0,-20,0]].forEach(d => {
+      const [dx1,dy1,,dx2,dy2] = d;
+      // small L-shapes at corners
+    });
+    ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI*2); ctx.stroke();
+    ctx.shadowBlur = 0;
+  });
+
+  // ── Watermark "Sathish Design" diagonal ──
+  ctx.save();
+  ctx.translate(600, 425);
+  ctx.rotate(-Math.PI / 5);
+  ctx.font = 'bold 72px Orbitron, Arial';
+  ctx.fillStyle = 'rgba(0,245,255,0.055)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('SATHISH DESIGN', 0, 0);
+  // second pass slightly offset for depth
+  ctx.fillStyle = 'rgba(255,215,0,0.03)';
+  ctx.fillText('SATHISH DESIGN', 2, 2);
+  ctx.restore();
+
+  // ── Shield icon (top centre) ──
+  ctx.font = '64px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#00f5ff';
+  ctx.shadowColor = '#00f5ff';
+  ctx.shadowBlur = 20;
+  ctx.fillText('🛡️', 600, 130);
+  ctx.shadowBlur = 0;
+
+  // ── Title ──
+  ctx.font = 'bold 52px Orbitron, Arial';
+  ctx.fillStyle = '#00f5ff';
+  ctx.shadowColor = '#00f5ff';
+  ctx.shadowBlur = 18;
+  ctx.textAlign = 'center';
+  ctx.fillText('CYBER AGENT CERTIFIED', 600, 210);
+  ctx.shadowBlur = 0;
+
+  // ── Subtitle ──
+  ctx.font = '18px Share Tech Mono, monospace';
+  ctx.fillStyle = '#4a6a9a';
+  ctx.letterSpacing = '0.12em';
+  ctx.fillText('THIS CERTIFIES SUCCESSFUL COMPLETION OF', 600, 255);
+
+  // ── Mission name ──
+  ctx.font = 'bold 28px Orbitron, Arial';
+  ctx.fillStyle = '#ffd700';
+  ctx.shadowColor = '#ffd700';
+  ctx.shadowBlur = 12;
+  ctx.fillText('CYBERQUEST: THE DATA SECURITY MISSION', 600, 300);
+  ctx.shadowBlur = 0;
+
+  // ── Divider ──
+  const div = ctx.createLinearGradient(200, 0, 1000, 0);
+  div.addColorStop(0, 'transparent');
+  div.addColorStop(0.5, '#00f5ff');
+  div.addColorStop(1, 'transparent');
+  ctx.strokeStyle = div;
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(200, 330); ctx.lineTo(1000, 330); ctx.stroke();
+
+  // ── Agent label ──
+  ctx.font = '13px Share Tech Mono, monospace';
+  ctx.fillStyle = '#4a6a9a';
+  ctx.fillText('CERTIFIED CYBER AGENT', 600, 368);
+
+  // ── Agent name placeholder line ──
+  ctx.strokeStyle = 'rgba(0,245,255,0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(350, 420); ctx.lineTo(850, 420); ctx.stroke();
+  ctx.font = 'bold 36px Orbitron, Arial';
+  ctx.fillStyle = '#e8f4ff';
+  ctx.fillText('CYBER AGENT', 600, 410);
+
+  // ── Stats row ──
+  const stats = [
+    { label:'TOTAL SCORE', value: score, color:'#ffd700' },
+    { label:'XP EARNED',   value: xp,    color:'#00f5ff' },
+    { label:'TROPHIES',    value: trophies, color:'#00ff88' }
+  ];
+  stats.forEach(({ label, value, color }, i) => {
+    const x = 300 + i * 300;
+    // Card bg
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    roundRect(ctx, x - 90, 450, 180, 90, 8);
+    ctx.fill(); ctx.stroke();
+    // Value
+    ctx.font = 'bold 32px Orbitron, Arial';
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 10;
+    ctx.fillText(value, x, 500);
+    ctx.shadowBlur = 0;
+    // Label
+    ctx.font = '11px Share Tech Mono, monospace';
+    ctx.fillStyle = '#4a6a9a';
+    ctx.fillText(label, x, 525);
+  });
+
+  // ── Data Security Awareness tag ──
+  ctx.font = '13px Share Tech Mono, monospace';
+  ctx.fillStyle = '#00f5ff';
+  ctx.fillText('DATA SECURITY AWARENESS', 600, 590);
+
+  // ── Bottom divider ──
+  ctx.strokeStyle = div;
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(200, 610); ctx.lineTo(1000, 610); ctx.stroke();
+
+  // ── Signature / seal area ──
+  ctx.font = '12px Share Tech Mono, monospace';
+  ctx.fillStyle = '#4a6a9a';
+  ctx.fillText('VERIFIED BY CYBERQUEST SECURITY DIVISION', 600, 660);
+
+  // Seal circle
+  ctx.strokeStyle = '#ffd700';
+  ctx.lineWidth = 2;
+  ctx.shadowColor = '#ffd700';
+  ctx.shadowBlur = 10;
+  ctx.beginPath(); ctx.arc(600, 730, 45, 0, Math.PI*2); ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.font = '28px Arial';
+  ctx.fillStyle = '#ffd700';
+  ctx.fillText('🏆', 600, 738);
+
+  // ── Bottom badge ──
+  ctx.font = 'bold 11px Orbitron, Arial';
+  ctx.fillStyle = '#4a6a9a';
+  ctx.fillText('CYBERQUEST · SATHISH DESIGN', 600, 795);
+
+  // Download
+  const link = document.createElement('a');
+  link.download = 'CyberQuest_Certificate.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
 </script>
 </body>
 </html>
