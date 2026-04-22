@@ -865,7 +865,193 @@ body::after {
 
   <!-- SPLASH -->
   <div class="screen active" id="screen-splash">
-    <div class="splash-content">
+    <!-- Cybersecurity SVG background overlay -->
+    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice"
+      style="position:absolute;inset:0;width:100%;height:100%;opacity:0.18;pointer-events:none;z-index:0;">
+      <defs>
+        <radialGradient id="gCenter" cx="50%" cy="50%" r="55%">
+          <stop offset="0%" stop-color="#00f5ff" stop-opacity="0.15"/>
+          <stop offset="100%" stop-color="#050a14" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="softglow">
+          <feGaussianBlur stdDeviation="6" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- Subtle radial wash -->
+      <rect width="1200" height="700" fill="url(#gCenter)"/>
+
+      <!-- ── Hex grid background ── -->
+      <g stroke="#00c8d4" stroke-width="0.6" fill="none" opacity="0.5">
+        <!-- Row 1 -->
+        <polygon points="60,30 90,12 120,30 120,66 90,84 60,66"/>
+        <polygon points="120,30 150,12 180,30 180,66 150,84 120,66"/>
+        <polygon points="180,30 210,12 240,30 240,66 210,84 180,66"/>
+        <polygon points="240,30 270,12 300,30 300,66 270,84 240,66"/>
+        <polygon points="300,30 330,12 360,30 360,66 330,84 300,66"/>
+        <polygon points="360,30 390,12 420,30 420,66 390,84 360,66"/>
+        <polygon points="420,30 450,12 480,30 480,66 450,84 420,66"/>
+        <polygon points="480,30 510,12 540,30 540,66 510,84 480,66"/>
+        <polygon points="540,30 570,12 600,30 600,66 570,84 540,66"/>
+        <polygon points="600,30 630,12 660,30 660,66 630,84 600,66"/>
+        <polygon points="660,30 690,12 720,30 720,66 690,84 660,66"/>
+        <polygon points="720,30 750,12 780,30 780,66 750,84 720,66"/>
+        <polygon points="780,30 810,12 840,30 840,66 810,84 780,66"/>
+        <polygon points="840,30 870,12 900,30 900,66 870,84 840,66"/>
+        <polygon points="900,30 930,12 960,30 960,66 930,84 900,66"/>
+        <polygon points="960,30 990,12 1020,30 1020,66 990,84 960,66"/>
+        <polygon points="1020,30 1050,12 1080,30 1080,66 1050,84 1020,66"/>
+        <polygon points="1080,30 1110,12 1140,30 1140,66 1110,84 1080,66"/>
+        <!-- Row 2 (offset) -->
+        <polygon points="30,84 60,66 90,84 90,120 60,138 30,120"/>
+        <polygon points="90,84 120,66 150,84 150,120 120,138 90,120"/>
+        <polygon points="150,84 180,66 210,84 210,120 180,138 150,120"/>
+        <polygon points="210,84 240,66 270,84 270,120 240,138 210,120"/>
+        <polygon points="270,84 300,66 330,84 330,120 300,138 270,120"/>
+        <polygon points="330,84 360,66 390,84 390,120 360,138 330,120"/>
+        <polygon points="390,84 420,66 450,84 450,120 420,138 390,120"/>
+        <polygon points="450,84 480,66 510,84 510,120 480,138 450,120"/>
+        <polygon points="510,84 540,66 570,84 570,120 540,138 510,120"/>
+        <polygon points="570,84 600,66 630,84 630,120 600,138 570,120"/>
+        <polygon points="630,84 660,66 690,84 690,120 660,138 630,120"/>
+        <polygon points="690,84 720,66 750,84 750,120 720,138 690,120"/>
+        <polygon points="750,84 780,66 810,84 810,120 780,138 750,120"/>
+        <polygon points="810,84 840,66 870,84 870,120 840,138 810,120"/>
+        <polygon points="870,84 900,66 930,84 930,120 900,138 870,120"/>
+        <polygon points="930,84 960,66 990,84 990,120 960,138 930,120"/>
+        <polygon points="990,84 1020,66 1050,84 1050,120 1020,138 990,120"/>
+        <polygon points="1050,84 1080,66 1110,84 1110,120 1080,138 1050,120"/>
+        <polygon points="1110,84 1140,66 1170,84 1170,120 1140,138 1110,120"/>
+        <!-- Row 3 -->
+        <polygon points="60,138 90,120 120,138 120,174 90,192 60,174"/>
+        <polygon points="180,138 210,120 240,138 240,174 210,192 180,174"/>
+        <polygon points="300,138 330,120 360,138 360,174 330,192 300,174"/>
+        <polygon points="420,138 450,120 480,138 480,174 450,192 420,174"/>
+        <polygon points="540,138 570,120 600,138 600,174 570,192 540,174"/>
+        <polygon points="660,138 690,120 720,138 720,174 690,192 660,174"/>
+        <polygon points="780,138 810,120 840,138 840,174 810,192 780,174"/>
+        <polygon points="900,138 930,120 960,138 960,174 930,192 900,174"/>
+        <polygon points="1020,138 1050,120 1080,138 1080,174 1050,192 1020,174"/>
+        <!-- Bottom rows -->
+        <polygon points="60,570 90,552 120,570 120,606 90,624 60,606"/>
+        <polygon points="180,570 210,552 240,570 240,606 210,624 180,606"/>
+        <polygon points="300,570 330,552 360,570 360,606 330,624 300,606"/>
+        <polygon points="420,570 450,552 480,570 480,606 450,624 420,606"/>
+        <polygon points="540,570 570,552 600,570 600,606 570,624 540,606"/>
+        <polygon points="660,570 690,552 720,570 720,606 690,624 660,606"/>
+        <polygon points="780,570 810,552 840,570 840,606 810,624 780,606"/>
+        <polygon points="900,570 930,552 960,570 960,606 930,624 900,606"/>
+        <polygon points="1020,570 1050,552 1080,570 1080,606 1050,624 1020,606"/>
+        <polygon points="30,624 60,606 90,624 90,660 60,678 30,660"/>
+        <polygon points="150,624 180,606 210,624 210,660 180,678 150,660"/>
+        <polygon points="270,624 300,606 330,624 330,660 300,678 270,660"/>
+        <polygon points="390,624 420,606 450,624 450,660 420,678 390,660"/>
+        <polygon points="510,624 540,606 570,624 570,660 540,678 510,660"/>
+        <polygon points="630,624 660,606 690,624 690,660 660,678 630,660"/>
+        <polygon points="750,624 780,606 810,624 810,660 780,678 750,660"/>
+        <polygon points="870,624 900,606 930,624 930,660 900,678 870,660"/>
+        <polygon points="990,624 1020,606 1050,624 1050,660 1020,678 990,660"/>
+        <polygon points="1110,624 1140,606 1170,624 1170,660 1140,678 1110,660"/>
+      </g>
+
+      <!-- ── Network node lines ── -->
+      <g stroke="#00f5ff" stroke-width="1" opacity="0.6" filter="url(#glow)">
+        <line x1="150" y1="200" x2="350" y2="320"/>
+        <line x1="350" y1="320" x2="600" y2="250"/>
+        <line x1="600" y1="250" x2="850" y2="380"/>
+        <line x1="850" y1="380" x2="1050" y2="280"/>
+        <line x1="350" y1="320" x2="500" y2="480"/>
+        <line x1="600" y1="250" x2="500" y2="480"/>
+        <line x1="500" y1="480" x2="700" y2="520"/>
+        <line x1="700" y1="520" x2="850" y2="380"/>
+        <line x1="150" y1="200" x2="200" y2="420"/>
+        <line x1="200" y1="420" x2="350" y2="320"/>
+        <line x1="1050" y1="280" x2="1000" y2="460"/>
+        <line x1="1000" y1="460" x2="850" y2="380"/>
+        <line x1="700" y1="520" x2="750" y2="620"/>
+        <line x1="500" y1="480" x2="400" y2="580"/>
+        <line x1="200" y1="420" x2="400" y2="580"/>
+      </g>
+
+      <!-- ── Network nodes (circles) ── -->
+      <g filter="url(#softglow)">
+        <circle cx="150" cy="200" r="8" fill="#00f5ff" opacity="0.9"/>
+        <circle cx="350" cy="320" r="12" fill="#00f5ff" opacity="0.9"/>
+        <circle cx="600" cy="250" r="16" fill="#00f5ff" opacity="1"/>
+        <circle cx="850" cy="380" r="12" fill="#00f5ff" opacity="0.9"/>
+        <circle cx="1050" cy="280" r="8" fill="#00f5ff" opacity="0.9"/>
+        <circle cx="500" cy="480" r="10" fill="#00ff88" opacity="0.85"/>
+        <circle cx="700" cy="520" r="10" fill="#00ff88" opacity="0.85"/>
+        <circle cx="200" cy="420" r="7" fill="#00c8d4" opacity="0.8"/>
+        <circle cx="1000" cy="460" r="7" fill="#00c8d4" opacity="0.8"/>
+        <circle cx="750" cy="620" r="6" fill="#00c8d4" opacity="0.7"/>
+        <circle cx="400" cy="580" r="6" fill="#00c8d4" opacity="0.7"/>
+        <!-- Pulsing centre node rings -->
+        <circle cx="600" cy="250" r="28" fill="none" stroke="#00f5ff" stroke-width="1.5" opacity="0.4"/>
+        <circle cx="600" cy="250" r="44" fill="none" stroke="#00f5ff" stroke-width="0.8" opacity="0.2"/>
+      </g>
+
+      <!-- ── Central shield ── -->
+      <g transform="translate(540,130)" filter="url(#softglow)">
+        <path d="M60,0 L120,24 L120,72 Q120,108 60,130 Q0,108 0,72 L0,24 Z"
+              fill="none" stroke="#00f5ff" stroke-width="2.5" opacity="0.85"/>
+        <!-- Shield inner checkmark -->
+        <polyline points="28,65 50,90 92,42" fill="none" stroke="#00ff88" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+      </g>
+
+      <!-- ── Binary rain columns (left side) ── -->
+      <g font-family="monospace" font-size="11" fill="#00f5ff" opacity="0.35">
+        <text x="30"  y="260">1</text><text x="30"  y="275">0</text><text x="30"  y="290">1</text><text x="30"  y="305">1</text><text x="30"  y="320">0</text>
+        <text x="48"  y="300">0</text><text x="48"  y="315">1</text><text x="48"  y="330">0</text><text x="48"  y="345">1</text>
+        <text x="66"  y="340">1</text><text x="66"  y="355">1</text><text x="66"  y="370">0</text><text x="66"  y="385">0</text>
+        <text x="84"  y="370">0</text><text x="84"  y="385">1</text><text x="84"  y="400">1</text>
+      </g>
+      <!-- right side binary -->
+      <g font-family="monospace" font-size="11" fill="#00f5ff" opacity="0.35">
+        <text x="1110" y="300">1</text><text x="1110" y="315">0</text><text x="1110" y="330">1</text><text x="1110" y="345">0</text>
+        <text x="1128" y="320">0</text><text x="1128" y="335">1</text><text x="1128" y="350">1</text><text x="1128" y="365">0</text>
+        <text x="1146" y="280">1</text><text x="1146" y="295">1</text><text x="1146" y="310">0</text><text x="1146" y="325">0</text><text x="1146" y="340">1</text>
+        <text x="1164" y="340">0</text><text x="1164" y="355">1</text><text x="1164" y="370">0</text>
+      </g>
+
+      <!-- ── Lock icon bottom-left ── -->
+      <g transform="translate(80,490)" stroke="#ffd700" stroke-width="2" fill="none" opacity="0.6">
+        <rect x="0" y="22" width="40" height="30" rx="4"/>
+        <path d="M8,22 L8,12 Q8,0 20,0 Q32,0 32,12 L32,22"/>
+        <circle cx="20" cy="37" r="4" fill="#ffd700" opacity="0.7"/>
+      </g>
+
+      <!-- ── Lock icon bottom-right ── -->
+      <g transform="translate(1070,490)" stroke="#ffd700" stroke-width="2" fill="none" opacity="0.6">
+        <rect x="0" y="22" width="40" height="30" rx="4"/>
+        <path d="M8,22 L8,12 Q8,0 20,0 Q32,0 32,12 L32,22"/>
+        <circle cx="20" cy="37" r="4" fill="#ffd700" opacity="0.7"/>
+      </g>
+
+      <!-- ── Scan line sweep ── -->
+      <rect x="0" y="0" width="1200" height="2" fill="#00f5ff" opacity="0.12"/>
+      <rect x="0" y="349" width="1200" height="1" fill="#00f5ff" opacity="0.08"/>
+      <rect x="0" y="699" width="1200" height="2" fill="#00f5ff" opacity="0.12"/>
+
+      <!-- ── Corner brackets ── -->
+      <g stroke="#00f5ff" stroke-width="2.5" fill="none" opacity="0.7">
+        <!-- TL -->
+        <polyline points="20,50 20,20 50,20"/>
+        <!-- TR -->
+        <polyline points="1150,20 1180,20 1180,50"/>
+        <!-- BL -->
+        <polyline points="20,650 20,680 50,680"/>
+        <!-- BR -->
+        <polyline points="1150,680 1180,680 1180,650"/>
+      </g>
+    </svg>
+
+    <div class="splash-content" style="position:relative;z-index:1;">
       <div class="splash-logo">CYBER<span>QUEST</span></div>
       <div class="splash-tagline">THE DATA SECURITY MISSION</div>
       <p class="splash-desc">
