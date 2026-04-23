@@ -848,7 +848,7 @@ body::after {
       <div class="inv-slot" id="inv-0" onclick="useItem(0)">🛡️<div class="inv-count" id="inv-0-c">1</div><div class="inv-tooltip">FIREWALL SHIELD<br>Block 1 wrong answer</div></div>
       <div class="inv-slot" id="inv-1" onclick="useItem(1)">⚡<div class="inv-count" id="inv-1-c">1</div><div class="inv-tooltip">TIME BOOST<br>+15 seconds</div></div>
       <div class="inv-slot" id="inv-2" onclick="useItem(2)">💊<div class="inv-count" id="inv-2-c">1</div><div class="inv-tooltip">HP RESTORE<br>Restore 25% HP</div></div>
-      <div class="inv-slot empty" id="inv-3">🔒<div class="inv-tooltip">DECRYPT KEY<br>Unlock at Level 4</div></div>
+      <div class="inv-slot empty" id="inv-3">🔒<div class="inv-tooltip">DECRYPT KEY<br>Eliminates 2 wrong answers</div></div>
     </div>
   </div>
   <div class="hud-right">
@@ -1249,7 +1249,7 @@ const G = {
   combo:0, maxCombo:0, correctCount:0,
   timerInterval:null, timeLeft:30,
   completedMissions:[],
-  items:{shield:1, time:1, hp:1},
+  items:{shield:1, time:1, hp:1, decrypt:0},
   shieldActive:false,
   bossHP:100, bossPlayerHP:100,
   bossQ:0, bossCorrect:0,
@@ -1387,6 +1387,7 @@ function startMission(n){
   G.correctCount=0;
   G.combo=0;
   document.getElementById('level-badge').textContent='LEVEL '+n;
+  if(n>=4) unlockDecryptKey();
   if(m.intro&&m.intro.length>0){
     startDialogue(m.intro, ()=>startQuiz(m));
   } else {
@@ -1460,6 +1461,7 @@ function renderQuestion(mission){
   q.opts.forEach((opt,i)=>{
     const btn=document.createElement('button');
     btn.className='answer-btn';
+    btn.dataset.idx=String(i);
     btn.innerHTML=`<span class="ans-key">${labels[i]}</span>${opt}`;
     btn.onclick=()=>selectAnswer(i,q,mission,btn);
     grid.appendChild(btn);
@@ -1883,7 +1885,35 @@ function useItem(slot){
     if(G.items.hp===0) document.getElementById('inv-2').classList.add('empty');
     updateHUD();
     showNotif('💊 HP RESTORED — +25 health!','success');
+  } else if(slot===3&&G.items.decrypt>0){
+    const q=MISSIONS[G.currentMission]&&MISSIONS[G.currentMission].questions?MISSIONS[G.currentMission].questions[G.currentQ]:null;
+    if(!q){showNotif('🔒 No active question!','');return;}
+    const correctIdx=String(q.correct);
+    const wrongBtns=Array.from(document.querySelectorAll('.answer-btn')).filter(b=>b.dataset.idx!==correctIdx&&!b.classList.contains('locked')&&!b.classList.contains('correct'));
+    if(wrongBtns.length===0){showNotif('🔒 No wrong answers to eliminate!','');return;}
+    wrongBtns.slice(0,2).forEach(b=>{b.style.opacity='0.2';b.style.pointerEvents='none';});
+    G.items.decrypt--;
+    document.getElementById('inv-3-c').textContent=G.items.decrypt;
+    if(G.items.decrypt===0)document.getElementById('inv-3').classList.add('empty');
+    showNotif('🔑 DECRYPT KEY — 2 wrong answers eliminated!','success');
   }
+}
+
+function unlockDecryptKey(){
+  if(G.items.decrypt>0)return;
+  G.items.decrypt=1;
+  const slot=document.getElementById('inv-3');
+  slot.classList.remove('empty');
+  slot.onclick=function(){useItem(3);};
+  let badge=document.getElementById('inv-3-c');
+  if(!badge){
+    badge=document.createElement('div');
+    badge.className='inv-count';
+    badge.id='inv-3-c';
+    slot.appendChild(badge);
+  }
+  badge.textContent='1';
+  showNotif('🔑 DECRYPT KEY UNLOCKED — Eliminates 2 wrong answers!','success');
 }
 
 // ── DAMAGE / HEALTH ──
