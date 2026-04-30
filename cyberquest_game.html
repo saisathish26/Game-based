@@ -136,30 +136,7 @@ body::after {
   letter-spacing:0.08em;
 }
 
-/* ── PROGRESS BAR ── */
-.progress-strip {
-  height:3px;
-  background:var(--panel);
-  position:relative;
-  z-index:99;
-  flex-shrink:0;
-}
-.progress-glow {
-  height:100%;
-  background: linear-gradient(90deg, var(--cyan), var(--green), var(--yellow));
-  transition: width 0.6s cubic-bezier(.4,0,.2,1);
-  position:relative;
-}
-.progress-glow::after {
-  content:'';
-  position:absolute;
-  right:0; top:50%;
-  transform:translateY(-50%);
-  width:12px; height:12px;
-  border-radius:50%;
-  background:var(--yellow);
-  box-shadow:var(--glow-yellow);
-}
+
 
 /* ── MAIN CONTENT ── */
 .game-container { flex:1; overflow:hidden; position:relative; z-index:1; }
@@ -858,9 +835,7 @@ body::after {
 </div>
 
 <!-- PROGRESS -->
-<div class="progress-strip" id="prog-strip" style="display:none">
-  <div class="progress-glow" id="prog-glow" style="width:0%"></div>
-</div>
+
 
 <!-- SCREENS -->
 <div class="game-container">
@@ -1221,7 +1196,6 @@ function showScreen(name){
 
 function startGame(){
   document.getElementById('hud').style.display='flex';
-  document.getElementById('prog-strip').style.display='block';
   buildTrophyGrid();
   showScreen('map');
   updateHUD();
@@ -1793,7 +1767,7 @@ function addXP(n){ G.xp+=n; updateHUD(); }
 function updateProgress(){
   const total=5;
   const done=G.completedMissions.filter((v,i,a)=>a.indexOf(v)===i).length;
-  document.getElementById('prog-glow').style.width=(done/total*100)+'%';
+
 }
 
 // ── XP POPUP ──
@@ -2230,10 +2204,7 @@ document.addEventListener('click', e => {
   else SFX.click();
 });
 
-// ── Map nodes — locked attempt ──
-document.querySelectorAll('.map-node.locked').forEach(n => {
-  n.addEventListener('click', () => SFX.locked());
-});
+// ── Map nodes — locked attempt — no sound on click ──
 
 // ── Email drag-and-drop sounds ──
 document.addEventListener('dragstart', e => {
@@ -2254,7 +2225,7 @@ document.addEventListener('mouseover', e => {
   if (btn && !btn.classList.contains('locked')) {
     if (btn._hoverSnd) return;
     btn._hoverSnd = true;
-    play_hover_blip();
+    SFX.click();
     btn.addEventListener('mouseleave', () => { btn._hoverSnd = false; }, { once: true });
   }
 });
